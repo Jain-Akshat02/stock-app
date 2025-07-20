@@ -1,4 +1,3 @@
-// src/components/AddStock.tsx
 "use client";
 
 import { useState } from "react";
@@ -9,9 +8,11 @@ import {
   PackagePlus,
   Trash2,
 } from "lucide-react";
+import toast from "react-hot-toast";
+import axios from "axios";
 
-// --- MOCK DATA (to be replaced by API calls) ---
-// Using 'any' to simplify, as requested. In a larger app, you'd define a strict 'Product' type.
+/*{--- MOCK DATA (to be replaced by API calls) ---
+Using 'any' to simplify, as requested. In a larger app, you'd define a strict 'Product' type.
 const initialProducts: any[] = [
   {
     id: "prod-001",
@@ -38,16 +39,16 @@ const initialProducts: any[] = [
     sku: "SKU-5678",
     name: "Silk Night Gown",
     category: "Nightwear",
-    variants: [{ size: "S", color: "Champagne" }],
+    variants: [{ size: "S", MRP: "$10" }],
   },
 ];
+}*/
 
 // --- MODAL COMPONENT for adding a new product ---
-const NewProductModal = ({
-  isOpen,
-  onClose,
-  onAddProduct,
-}: {
+const handleSubmit = () => {
+  
+}
+const NewProductModal = ({isOpen,onClose,onAddProduct} : {
   isOpen: boolean;
   onClose: () => void;
   onAddProduct: (newProduct: any) => void;
@@ -57,15 +58,15 @@ const NewProductModal = ({
   const [newProductName, setNewProductName] = useState("");
   const [newSku, setNewSku] = useState("");
   const [newCategory, setNewCategory] = useState("Other");
-  const [newVariants, setNewVariants] = useState([{ size: "", color: "" }]);
+  const [newVariants, setNewVariants] = useState([{ size: "", MRP: "" }]);
 
   const handleAddVariant = () => {
-    setNewVariants([...newVariants, { size: "", color: "" }]);
+    setNewVariants([...newVariants, { size: "", MRP: "" }]);
   };
 
   const handleVariantChange = (
     index: number,
-    field: "size" | "color",
+    field: "size" | "MRP",
     value: string
   ) => {
     const updated = [...newVariants];
@@ -77,17 +78,6 @@ const NewProductModal = ({
     setNewVariants(newVariants.filter((_, i) => i !== index));
   };
 
-  const handleSubmit = () => {
-    const newProduct = {
-      id: `prod-${Date.now()}`, // Simple unique ID
-      name: newProductName,
-      sku: newSku,
-      category: newCategory,
-      variants: newVariants.filter((v) => v.size && v.color), // Only add valid variants
-    };
-    onAddProduct(newProduct);
-    onClose();
-  };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center z-50 p-4">
@@ -113,14 +103,14 @@ const NewProductModal = ({
             <input
               type="text"
               placeholder="Product Name (e.g., 'Silk Robe')"
-              className="form-input text-gray-700"
+              className="form-input text-gray-700 border-2 border-pink-100 rounded-md m-0.5 p-0.5"
               value={newProductName}
               onChange={(e) => setNewProductName(e.target.value)}
             />
             <input
               type="text"
               placeholder="SKU (e.g., 'SR-001')"
-              className="form-input text-gray-700"
+              className="form-input text-gray-700 border-2 border-pink-100 rounded-md"
               value={newSku}
               onChange={(e) => setNewSku(e.target.value)}
             />
@@ -139,14 +129,14 @@ const NewProductModal = ({
 
           <div className="border-t pt-4">
             <h3 className="font-semibold mb-2 text-gray-800">
-              Product Variants (Size & Color)
+              Product Variants (Size & MRP)
             </h3>
             {newVariants.map((variant, index) => (
               <div key={index} className="flex items-center gap-2 mb-2">
                 <input
                   type="text"
                   placeholder="Size (e.g., 'M')"
-                  className="form-input"
+                  className="form-input text-gray-700 border-2 border-pink-100 rounded-md"
                   value={variant.size}
                   onChange={(e) =>
                     handleVariantChange(index, "size", e.target.value)
@@ -154,11 +144,11 @@ const NewProductModal = ({
                 />
                 <input
                   type="text"
-                  placeholder="Color (e.g., 'Red')"
-                  className="form-input"
-                  value={variant.color}
+                  placeholder="MRP"
+                  className="form-input text-gray-800 border-2 border-pink-100 rounded-md"
+                  value={variant.MRP}
                   onChange={(e) =>
-                    handleVariantChange(index, "color", e.target.value)
+                    handleVariantChange(index, "MRP", e.target.value)
                   }
                 />
                 <button
@@ -178,10 +168,10 @@ const NewProductModal = ({
           </div>
         </div>
         <div className="flex justify-end items-center p-5 border-t border-gray-200 gap-3">
-          <button onClick={onClose} className="form-button-secondary">
+          <button onClick={onClose} className="form-button-secondary text-pink-400 rounded-md border-1 border-black-400 p-1 cursor-pointer">
             Cancel
           </button>
-          <button onClick={handleSubmit} className="form-button-primary">
+          <button onClick={handleSubmit} className="form-button-primary bg-pink-600 rounded-md border-1 border-black-400 p-1.5 cursor-pointer">
             Save Product
           </button>
         </div>
@@ -192,13 +182,73 @@ const NewProductModal = ({
 
 // --- MAIN COMPONENT ---
 const AddStock = () => {
-  const [products, setProducts] = useState<any[]>(initialProducts);
+  const [products, setProducts] = useState<any[]>([]);
   const [selectedProductId, setSelectedProductId] = useState("");
   const [sizeStock, setSizeStock] = useState<any[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [date, setDate] = useState(new Date().toISOString().split('T')[0]); // Default to today
+  const [notes, setNotes] = useState("");
+  const [isLoading, setIsLoading] = useState(false); // For loading state
 
   const selectedProduct = products.find((p) => p.id === selectedProductId);
   const variants = selectedProduct?.variants || [];
+  // In the AddStock component
+const handleSubmit = async () => {
+  // 1. Basic Validation
+  if (!selectedProductId || !date) {
+    toast.success("Please select a product and a received date.");
+    return;
+  }
+
+  // 2. Filter for entries that have a quantity
+  const validStockEntries = variants
+    .map((variant:any, index:any) => ({
+      variantId: variant.id,
+      quantity: parseInt(sizeStock[index]?.quantity || "0", 10),
+      costPerDozen: parseFloat(sizeStock[index]?.cost || "0"),
+    }))
+    .filter((entry:{quantity: number}) => entry.quantity > 0);
+
+  if (validStockEntries.length === 0) {
+    toast.error("Please enter a quantity for at least one variant.");
+    return;
+  }
+  
+  // 3. Assemble the API Payload
+  const payload = {
+    productId: selectedProductId,
+    receivedDate: date,
+    notes: notes,
+    stockEntries: validStockEntries,
+  };
+
+  // 4. API Call
+  setIsLoading(true);
+  try {
+    const response = await axios.post('/api/stock', payload);
+    console.log("API Response:", response.data); 
+    toast.success("Stock added successfully!");
+    // Optional: Reset form state here
+    setSelectedProductId("");
+    setSizeStock([]);
+    setDate(new Date().toISOString().split('T')[0]);
+    setNotes("");
+  } catch (error:any) {
+    console.error("Submission failed:", error);
+    toast.error(error.message);
+  } finally {
+    setIsLoading(false);
+  }
+};
+
+// Update your submit button to show loading state
+<button
+  onClick={handleSubmit}
+  disabled={isLoading}
+  className="..."
+>
+  {isLoading ? "Adding..." : <><Plus size={20} /> Add to Stock</>}
+</button>
 
   const handleProductChange = (productId: string) => {
     setSelectedProductId(productId);
@@ -344,6 +394,8 @@ const AddStock = () => {
                 <input
                   type="date"
                   id="received-date"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
                   className="block w-full px-4 py-2.5 rounded-lg border border-gray-300 bg-white text-gray-800 placeholder-gray-400 transition focus:outline-none focus:ring-2 focus:ring-pink-300 focus:border-pink-500"
                 />
                 <CalendarIcon className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
@@ -359,6 +411,8 @@ const AddStock = () => {
               <textarea
                 id="notes"
                 rows={1}
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
                 className="block w-full px-4 py-2.5 rounded-lg border border-gray-300 bg-white text-gray-800 placeholder-gray-400 transition focus:outline-none focus:ring-2 focus:ring-pink-300 focus:border-pink-500 mt-2"
                 placeholder="Add reference notes..."
               ></textarea>
@@ -369,7 +423,9 @@ const AddStock = () => {
             <button className="flex items-center justify-center text-gray-700 bg-gray-100 border border-gray-200 px-5 py-2.5 rounded-lg hover:bg-gray-200 transition-all font-semibold">
               Cancel
             </button>
-            <button className="flex items-center justify-center gap-2 text-white bg-pink-600 px-5 py-2.5 rounded-lg hover:bg-pink-700 transition-all font-semibold shadow-sm">
+            <button
+             onClick={() => handleSubmit()}
+             className="flex items-center justify-center gap-2 text-white bg-pink-600 px-5 py-2.5 rounded-lg hover:bg-pink-700 transition-all font-semibold shadow-sm">
               <Plus size={20} />
               Add to Stock
             </button>
