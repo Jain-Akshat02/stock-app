@@ -111,7 +111,6 @@ const Dashboard = () => {
             </tbody>
           </table>
         </div>
-        <Pagination />
       </div>
     </div>
   );

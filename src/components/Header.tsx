@@ -1,28 +1,21 @@
 // src/components/Header.tsx
 "use client";
-import { useRouter } from "next/navigation";
-import { Plus, Minus, Bell, ChevronDown } from "lucide-react";
+import { useRouter } from 'next/navigation';
+import { Plus, Minus, Bell, ChevronDown } from 'lucide-react';
 
 const Header = () => {
   const router = useRouter();
-
   return (
     <header className="bg-white shadow-sm p-4 flex justify-between items-center">
       <div className="relative w-64">
         {/* You can add a search bar or logo here if needed */}
       </div>
       <div className="flex items-center space-x-4">
-        <button
-          onClick={() => router.push("/add-stock")}
-          className="flex items-center bg-pink-500 text-white px-4 py-2 cursor-pointer rounded-lg hover:bg-pink-600 transition-colors"
-        >
+        <button onClick={() => router.push('/add-stock')}  className="flex items-center bg-pink-500 text-white px-4 py-2 cursor-pointer rounded-lg hover:bg-pink-600 transition-colors">
           <Plus size={20} className="mr-2" />
           Add Stock
         </button>
-        <button
-          onClick={() => router.push("/record-sale")}
-          className="flex items-center bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors"
-        >
+        <button className="flex items-center bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors">
           <Minus size={20} className="mr-2" />
           Record Sale
         </button>

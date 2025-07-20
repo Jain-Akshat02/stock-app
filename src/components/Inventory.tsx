@@ -80,12 +80,6 @@ const Inventory = () => {
           <option>L</option>
         </select>
         <select className="filter-select text-gray-500">
-          <option>All Colors</option>
-          <option>Black</option>
-          <option>White</option>
-          <option>Red</option>
-        </select>
-        <select className="filter-select text-gray-500">
           <option>Current Status</option>
           <option>In Stock</option>
           <option>Low Stock</option>
