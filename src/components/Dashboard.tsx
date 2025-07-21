@@ -3,7 +3,6 @@
 
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import InfoCard from '@/components/InfoCard';
-import Pagination from '@/components/Pagination';
 
 // Type Definitions
 interface StockFlow {

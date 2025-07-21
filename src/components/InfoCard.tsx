@@ -1,4 +1,5 @@
 // src/components/InfoCard.tsx
+"use-client"
 type InfoCardProps = {
   title: string;
   value: string;

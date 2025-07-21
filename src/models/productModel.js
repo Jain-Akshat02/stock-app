@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import { unique } from "next/dist/build/utils";
 
 const productSchema = mongoose.Schema({
     name: {
@@ -11,18 +10,25 @@ const productSchema = mongoose.Schema({
         type: String,
         required: true,
     },
-    quantity: {
-        type: String,
-        required: true,
-    },
-    price: {
+    mrp: {
         type: Number,
-        required: true,
+        required: false,
     },
+    variants: [
+        {
+            size: { type: String, required: true },
+            mrp: { type: Number, required: true },
+        }
+    ],
     dateAdded: {
         type: Date,
         default: Date.now
-    }
+    },
+    sku: {
+        type: String,
+        required: true,
+        unique: true
+    },
 })
 
 const Product = mongoose.model('Product', productSchema)

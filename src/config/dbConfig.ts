@@ -6,16 +6,17 @@ type ConnectionObect = {
 const connection: ConnectionObect = {};
 async function connect(): Promise<void> {
   if (connection.isConnected) {
+    console.log("Already connected");
     return;
   }
   try {
-    const db = await mongoose.connect(process.env.MONGO_URI!,{});
-    const connection = mongoose.connection;
-    connection.on("connected", () => {
-    console.log("Connected to MongoDB");
-    });
+    console.log("Connecting to MongoDB");
+    
+    const db = await mongoose.connect(process.env.MONGO_URI! || "",{});
+    connection.isConnected = db.connections[0].readyState;
   } catch (error) {
     console.log("something went wrong",error);
+    process.exit(1);
   }
 }
 

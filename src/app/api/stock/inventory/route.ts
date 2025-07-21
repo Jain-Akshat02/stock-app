@@ -10,14 +10,15 @@ export const GET = async () => {
   } catch (error) {
     return new Response(JSON.stringify({ message: "Error fetching products", error }), { status: 500 });
   }
-}
+};
+
 export const POST = async (req: Request) => {
   await connect();
   try {
     const body = await req.json();
-    const { name, category, variants } = body;
+    const { name, category, sku, variants } = body;
     console.log(body);
-    if (!name || !category || !variants || !Array.isArray(variants) || variants.length === 0) {
+    if (!name || !category || !sku || !variants || !Array.isArray(variants) || variants.length === 0) {
       return new Response(JSON.stringify({ message: "Missing required fields" }), { status: 400 });
     }
     // Validate each variant
@@ -26,7 +27,7 @@ export const POST = async (req: Request) => {
         return new Response(JSON.stringify({ message: "Each variant must have size and mrp (number)" }), { status: 400 });
       }
     }
-    const product = await Product.create({ name, category, variants });
+    const product = await Product.create({ name, category, sku, variants });
     return new Response(JSON.stringify(product), { status: 201 });
   } catch (error) {
     return new Response(JSON.stringify({ message: "Error creating product", error }), { status: 500 });
