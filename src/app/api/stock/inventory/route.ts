@@ -6,6 +6,8 @@ connect();
 export const GET = async () => {
   try {
     const products = await Product.find();
+    console.log(products);
+    
     return new Response(JSON.stringify(products), { status: 200 });
   } catch (error) {
     return new Response(JSON.stringify({ message: "Error fetching products", error }), { status: 500 });

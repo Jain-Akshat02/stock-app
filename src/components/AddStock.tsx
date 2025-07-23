@@ -268,9 +268,9 @@ const AddStock = () => {
 
     const validStockEntries = variants
       .map((variant: any, index: any) => ({
-        variantId: variant.id, // Assumes variants from the DB have an 'id'
+        variantId: variant._id, // Assumes variants from the DB have an 'id'
         quantity: parseInt(sizeStock[index]?.quantity || "0", 10),
-        costPerDozen: parseFloat(sizeStock[index]?.cost || "0"),
+        mrp: variant.mrp,
       }))
       .filter((entry: { quantity: number }) => entry.quantity > 0);
 
@@ -283,11 +283,12 @@ const AddStock = () => {
       receivedDate: date,
       notes: notes,
       stockEntries: validStockEntries,
+      
     };
 
     setIsLoading(true);
     try {
-      await axios.post("/api/stock/inventory", payload);
+      await axios.post("/api/stock/entry", payload);
       toast.success("Stock added successfully!");
       // Reset form on successful submission
       setSelectedProductId("");
@@ -383,7 +384,7 @@ const AddStock = () => {
                           <input
                             type="number"
                             min="0"
-                            className="block w-full px-3 py-1.5 text-sm rounded-md border-gray-300 shadow-sm focus:border-pink-500 focus:ring-pink-500"
+                            className="block w-full px-3 py-1.5 text-sm rounded-md border-gray-300 shadow-sm focus:border-pink-500 focus:ring-pink-500 text-gray-800"
                             placeholder="e.g., 50"
                             value={sizeStock[idx]?.quantity || ""}
                             onChange={(e) =>
@@ -391,7 +392,7 @@ const AddStock = () => {
                                 idx,
                                 "quantity",
                                 e.target.value
-                              )
+                              ) 
                             }
                           />
                         </td>

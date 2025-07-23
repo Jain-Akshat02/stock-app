@@ -18,6 +18,7 @@ const productSchema = mongoose.Schema({
         {
             size: { type: String, required: true },
             mrp: { type: Number, required: true },
+            quantity: { type: Number, required: true, default: 0 },
         }
     ],
     dateAdded: {
