@@ -27,8 +27,8 @@ const productSchema = mongoose.Schema({
     },
     sku: {
         type: String,
-        required: true,
-        unique: true
+        required: false,
+        unique: false
     },
 })
 

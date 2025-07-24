@@ -94,7 +94,7 @@ const Sidebar = ({ setActivePage, activePage }: SidebarProps) => {
               onClick={e => {
                 e.preventDefault();
                 setActivePage("settings");
-                router.push("/settings");
+                router.push("/");
               }}
               className={`flex items-center py-3 px-4 my-1 rounded-lg transition-colors duration-200 ${
                 activePage === "settings"

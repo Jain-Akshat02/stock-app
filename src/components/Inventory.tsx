@@ -1,46 +1,109 @@
 "use client";
 import React from "react";
 import { useEffect, useState } from "react";
-import {useRouter} from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Plus, Search, Edit, Trash2, X } from "lucide-react";
 import toast from "react-hot-toast";
 import axios from "axios";
 
-// Type Definitions for Inventory
-interface ProductVariant {
-  size: string;
-  color: string;
-  quantity: number;
-}
-
-const getTotalStock = (variants: ProductVariant[]) =>
-  variants.reduce((acc, v) => acc + v.quantity, 0);
 
 const getStockStatus = (stock: number) => {
   if (stock === 0)
     return { text: "Out of Stock", color: "bg-red-100 text-red-800" };
-  if (stock < 5)
+  if (stock <= 5)
     return { text: "Low Stock", color: "bg-yellow-100 text-yellow-800" };
   return { text: "In Stock", color: "bg-green-100 text-green-800" };
 };
 
+const DEFAULT_SIZES = ["S", "M", "L", "XL", "XXL"];
+
 const Inventory = () => {
   const [products, setProducts] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState('All Categories');
-  const [selectedSize, setSelectedSize] = useState('All Sizes');
-  const [stockStatus, setStockStatus] = useState('Current Status');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState("All Categories");
+  const [selectedSize, setSelectedSize] = useState("All Sizes");
+  const [stockStatus, setStockStatus] = useState("Current Status");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [newProduct, setNewProduct] = useState({
+    name: "",
+    sku: "",
+    category: "Bras",
+    variants: DEFAULT_SIZES.map((size) => ({ size, mrp: "" })),
+  });
+
+  const handleVariantChange = (idx: number, field: string, value: string) => {
+    setNewProduct((prev) => {
+      const variants = [...prev.variants];
+      variants[idx] = { ...variants[idx], [field]: value };
+      return { ...prev, variants };
+    });
+  };
+
+  const handleAddVariant = () => {
+    setNewProduct((prev) => ({
+      ...prev,
+      variants: [...prev.variants, { size: "", mrp: ""}],
+    }));
+  };
+
+  const handleRemoveVariant = (idx: number) => {
+    setNewProduct((prev) => {
+      const variants = prev.variants.filter((_, i) => i !== idx);
+      return { ...prev, variants };
+    });
+  };
+
+  const handleSaveProduct = async () => {
+    // Validate required fields
+    if (!newProduct.name || !newProduct.category) {
+      toast.error("Name and category are required");
+      return;
+    }
+    // Validate all variants have size and mrp (but not quantity)
+    for (const v of newProduct.variants) {
+      if (!v.size || v.mrp === "") {
+        toast.error("Each variant must have a size and MRP");
+        return;
+      }
+    }
+    try {
+      await axios.post("/api/stock/inventory", {
+        name: newProduct.name,
+        sku: newProduct.sku,
+        category: newProduct.category,
+        variants: newProduct.variants
+          .map((v) => ({
+            size: v.size,
+            mrp: Number(v.mrp),
+          })),
+      });
+      toast.success("Product added!");
+      setIsModalOpen(false);
+      setNewProduct({
+        name: "",
+        sku: "",
+        category: "Bras",
+        variants: DEFAULT_SIZES.map((size) => ({
+          size,
+          mrp: "",
+          quantity: "",
+        })),
+      });
+      // Optionally refresh inventory
+    } catch (error) {
+      toast.error("Failed to add product");
+    }
+  };
 
   const router = useRouter();
-  function aggregateStock(entries:any){
+  function aggregateStock(entries: any) {
     const map = new Map();
-    for(const entry of entries){
+    for (const entry of entries) {
       const key = `${entry.product?._id}-${entry.variants?.[0].size}-${entry.variants?.[0].mrp}`;
-      if(!map.has(key)){
+      if (!map.has(key)) {
         map.set(key, {
           ...entry,
-          quantity:0,
+          quantity: 0,
         });
       }
       map.get(key).quantity += entry.quantity;
@@ -48,24 +111,34 @@ const Inventory = () => {
     return Array.from(map.values());
   }
   const aggregatedProducts = aggregateStock(products);
-  const filteredProducts = aggregatedProducts.filter((entry:any) => {
+  const filteredProducts = aggregatedProducts.filter((entry: any) => {
+    const matchesCategory =
+      selectedCategory === "All Categories" ||
+      entry.product?.category === selectedCategory;
 
-    const matchesCategory = selectedCategory === 'All Categories' || entry.product?.category === selectedCategory;
-    const matchesSize = selectedSize === 'All Sizes' || entry.variants?.some((v:any) => v.size === selectedSize);
-    const matchesStatus = stockStatus === 'Current Status' || getStockStatus(getTotalStock(entry.variants)).text === stockStatus;
-    const matchSearch = searchQuery === '' || entry.product?.name.toLowerCase().includes(searchQuery.toLowerCase());
+    // Since each row only has one variant after aggregation:
+    const matchesSize =
+      selectedSize === "All Sizes" ||
+      entry.variants?.[0]?.size === selectedSize;
+
+    // Use entry.quantity directly for status:
+    const matchesStatus =
+      stockStatus === "Current Status" ||
+      getStockStatus(entry.quantity).text === stockStatus;
+
+    const matchSearch =
+      searchQuery === "" ||
+      entry.product?.name.toLowerCase().includes(searchQuery.toLowerCase());
 
     return matchesCategory && matchesSize && matchesStatus && matchSearch;
-
   });
-  
+
   useEffect(() => {
     const fetchStockData = async () => {
       try {
         const response = await axios.get("/api/stock/entry");
         setProducts(response.data);
         console.log("Fetched stock data:", response.data);
-        
       } catch (error: any) {
         console.error("Error fetching stock data:", error.message);
         toast.error(`Failed to fetch stock data: ${error.message}`, {
@@ -73,7 +146,6 @@ const Inventory = () => {
         });
         return [];
       }
-      
     };
     fetchStockData();
   }, []);
@@ -99,7 +171,7 @@ const Inventory = () => {
               }}
             />
           </div>
-          
+
           <button
             onClick={() => router.push("/add-stock")}
             className="flex items-center gap-2 text-white bg-pink-500 px-4 py-2 rounded-lg hover:bg-pink-600 transition-colors"
@@ -113,15 +185,18 @@ const Inventory = () => {
       {/* Filters Section */}
       <div className="bg-white p-4 rounded-xl shadow-lg flex flex-wrap items-center gap-4 border border-gray-100">
         <span className="font-semibold text-gray-800">Filter by:</span>
-        <select className="bg-white border border-gray-300 text-gray-700 text-sm rounded-lg focus:ring-pink-500 focus:border-pink-500 block p-2"
+        <select
+          className="bg-white border border-gray-300 text-gray-700 text-sm rounded-lg focus:ring-pink-500 focus:border-pink-500 block p-2"
           value={selectedCategory}
           onChange={(e) => setSelectedCategory(e.target.value)}
         >
           <option>All Categories</option>
           <option>Bras</option>
           <option>Panties</option>
+          <option>Nightwear</option>
         </select>
-        <select className="bg-white border border-gray-300 text-gray-700 text-sm rounded-lg focus:ring-pink-500 focus:border-pink-500 block p-2"
+        <select
+          className="bg-white border border-gray-300 text-gray-700 text-sm rounded-lg focus:ring-pink-500 focus:border-pink-500 block p-2"
           value={selectedSize}
           onChange={(e) => setSelectedSize(e.target.value)}
         >
@@ -130,7 +205,8 @@ const Inventory = () => {
           <option>M</option>
           <option>L</option>
         </select>
-        <select className="bg-white border border-gray-300 text-gray-700 text-sm rounded-lg focus:ring-pink-500 focus:border-pink-500 block p-2"
+        <select
+          className="bg-white border border-gray-300 text-gray-700 text-sm rounded-lg focus:ring-pink-500 focus:border-pink-500 block p-2"
           value={stockStatus}
           onChange={(e) => setStockStatus(e.target.value)}
         >
@@ -146,32 +222,88 @@ const Inventory = () => {
         <table className="w-full text-sm text-left text-gray-700">
           <thead className="text-xs font-bold text-gray-700 uppercase bg-gray-50">
             <tr>
-              <th scope="col" className="px-6 py-3">Product</th>
-              <th scope="col" className="px-6 py-3">Category</th>
-              <th scope="col" className="px-6 py-3">Size</th>
-              <th scope="col" className="px-6 py-3">MRP</th>
-              <th scope="col" className="px-6 py-3 text-center">Quantity</th>
-              <th scope="col" className="px-6 py-3 text-center">Status</th>
-              <th scope="col" className="px-6 py-3 text-center">Actions</th>
+              <th scope="col" className="px-6 py-3">
+                Product
+              </th>
+              <th scope="col" className="px-6 py-3">
+                SKU
+              </th>
+              <th scope="col" className="px-6 py-3">
+                Category
+              </th>
+              <th scope="col" className="px-6 py-3">
+                Size
+              </th>
+              <th scope="col" className="px-6 py-3">
+                MRP
+              </th>
+              <th scope="col" className="px-6 py-3 text-center">
+                Quantity
+              </th>
+              <th scope="col" className="px-6 py-3 text-center">
+                Status
+              </th>
+              <th scope="col" className="px-6 py-3 text-center">
+                Actions
+              </th>
             </tr>
           </thead>
           <tbody>
-          {filteredProducts.map((entry: any) => (
-              <tr key={entry._id} className="bg-white border-b hover:bg-pink-50 transition-colors">
-                <td className="px-6 py-4 font-semibold text-gray-900">{entry.product?.name}</td>
+            {filteredProducts.map((entry: any) => (
+              <tr
+                key={entry._id}
+                className="bg-white border-b hover:bg-pink-50 transition-colors"
+              >
+                <td className="px-6 py-4 font-semibold text-gray-900">
+                  {entry.product?.name}
+                </td>
+                <td className="px-6 py-4">{entry.product?.sku || "-"}</td>
                 <td className="px-6 py-4">{entry.product?.category}</td>
                 <td className="px-6 py-4">{entry.variants?.[0]?.size}</td>
                 <td className="px-6 py-4">₹{entry.variants?.[0]?.mrp}</td>
-                <td className="px-6 py-4 text-center font-bold text-gray-800">{entry.quantity}</td>
+                <td className="px-6 py-4 text-center font-bold text-gray-800">
+                  {entry.quantity}
+                </td>
                 <td className="px-6 py-4 text-center">
-                  <span className={`px-2 py-1 rounded-full text-xs font-semibold ${getStockStatus(entry.quantity).color}`}>
+                  <span
+                    className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                      getStockStatus(entry.quantity).color
+                    }`}
+                  >
                     {getStockStatus(entry.quantity).text}
                   </span>
                 </td>
                 <td className="px-6 py-4 text-center">
                   <div className="flex justify-center gap-2">
-                    <button className="p-2 text-gray-500 hover:text-blue-600 hover:bg-gray-100 rounded-full"><Edit size={18} /></button>
-                    <button className="p-2 text-gray-500 hover:text-red-600 hover:bg-gray-100 rounded-full"><Trash2 size={18} /></button>
+                    <button className="p-2 text-gray-500 hover:text-blue-600 hover:bg-gray-100 rounded-full">
+                      <Edit size={18} />
+                    </button>
+                    <button
+                      className="p-2 text-gray-500 hover:text-red-600 hover:bg-gray-100 rounded-full"
+                      onClick={async () => {
+                        if (
+                          window.confirm(
+                            "Are you sure you want to delete this stock entry?"
+                          )
+                        ) {
+                          try {
+                            await axios.delete(
+                              `/api/stock/entry?id=${entry._id}`
+                            );
+                            toast.success("Stock entry deleted");
+                            // Refresh inventory
+                            const response = await axios.get(
+                              "/api/stock/entry"
+                            );
+                            setProducts(response.data);
+                          } catch (error) {
+                            toast.error("Failed to delete stock entry");
+                          }
+                        }
+                      }}
+                    >
+                      <Trash2 size={18} />
+                    </button>
                   </div>
                 </td>
               </tr>
@@ -196,15 +328,82 @@ const Inventory = () => {
               </button>
             </div>
             <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
-              {/* Form fields would go here */}
-              <p className="text-gray-600">
-                Product creation form with fields for name, SKU, category,
-                price, description, and variant management will be here.
-              </p>
-              <p className="text-gray-600">
-                For example, a section to add multiple sizes, colors, and their
-                respective quantities.
-              </p>
+              <div className="space-y-3">
+                <input
+                  type="text"
+                  className="w-full border rounded-lg px-3 py-2 mb-2"
+                  placeholder="Product Name*"
+                  value={newProduct.name}
+                  onChange={(e) =>
+                    setNewProduct((p) => ({ ...p, name: e.target.value }))
+                  }
+                />
+                <input
+                  type="text"
+                  className="w-full border rounded-lg px-3 py-2 mb-2"
+                  placeholder="SKU (optional)"
+                  value={newProduct.sku}
+                  onChange={(e) =>
+                    setNewProduct((p) => ({ ...p, sku: e.target.value }))
+                  }
+                />
+                <select
+                  className="w-full border rounded-lg px-3 py-2 mb-2"
+                  value={newProduct.category}
+                  onChange={(e) =>
+                    setNewProduct((p) => ({ ...p, category: e.target.value }))
+                  }
+                >
+                  <option value="Bras">Bras</option>
+                  <option value="Panties">Panties</option>
+                  <option value="Nightwear">Nightwear</option>
+                  <option value="Shapewear">Shapewear</option>
+                </select>
+                <div>
+                  <div className="font-semibold mb-2">
+                    Variants (Size, MRP, Quantity)
+                  </div>
+                  {newProduct.variants.map((v, idx) => (
+                    <div key={idx} className="flex gap-2 mb-2 items-center">
+                      <input
+                        type="text"
+                        className="border rounded-lg px-2 py-1 w-20"
+                        placeholder="Size"
+                        value={v.size}
+                        onChange={(e) =>
+                          handleVariantChange(idx, "size", e.target.value)
+                        }
+                        disabled={idx < DEFAULT_SIZES.length}
+                      />
+                      <input
+                        type="number"
+                        className="border rounded-lg px-2 py-1 w-24"
+                        placeholder="MRP"
+                        value={v.mrp}
+                        onChange={(e) =>
+                          handleVariantChange(idx, "mrp", e.target.value)
+                        }
+                      />
+                      {idx >= DEFAULT_SIZES.length && (
+                        <button
+                          className="text-red-500 hover:text-red-700"
+                          onClick={() => handleRemoveVariant(idx)}
+                          type="button"
+                        >
+                          Remove
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                  <button
+                    className="mt-2 px-3 py-1 bg-pink-500 text-white rounded-lg hover:bg-pink-600"
+                    onClick={handleAddVariant}
+                    type="button"
+                  >
+                    + Add Variant
+                  </button>
+                </div>
+              </div>
             </div>
             <div className="flex justify-end items-center p-4 border-t gap-2">
               <button
@@ -213,7 +412,10 @@ const Inventory = () => {
               >
                 Cancel
               </button>
-              <button className="text-white bg-pink-500 px-4 py-2 rounded-lg hover:bg-pink-600">
+              <button
+                className="text-white bg-pink-500 px-4 py-2 rounded-lg hover:bg-pink-600"
+                onClick={handleSaveProduct}
+              >
                 Save Product
               </button>
             </div>
