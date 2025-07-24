@@ -224,9 +224,9 @@ const AddStock = () => {
       try {
         const response = await axios.get("/api/stock/inventory");
         setProducts(response.data);
-      } catch (error) {
-        console.error("Failed to fetch products:", error);
-        toast.error("Could not load product list.");
+      } catch (error:any) {
+        console.error("Failed to fetch products:", error.message);
+        toast.error(error.message);
       }
     };
     fetchProducts();
@@ -271,6 +271,7 @@ const AddStock = () => {
         variantId: variant._id, // Assumes variants from the DB have an 'id'
         quantity: parseInt(sizeStock[index]?.quantity || "0", 10),
         mrp: variant.mrp,
+        size: variant.size,
       }))
       .filter((entry: { quantity: number }) => entry.quantity > 0);
 
@@ -296,7 +297,7 @@ const AddStock = () => {
       setDate(new Date().toISOString().split("T")[0]);
       setNotes("");
     } catch (error: any) {
-      console.error("Submission failed:", error);
+      console.error(error.message);
       const message = error.response?.data?.message || "Failed to add stock.";
       toast.error(message);
     } finally {

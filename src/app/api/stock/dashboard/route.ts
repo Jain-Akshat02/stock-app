@@ -24,7 +24,7 @@ export async function POST(request: Request) {
     console.log(`Received stock update: Add ${quantity} to SKU ${sku}`);
 
     return NextResponse.json({ message: "Stock added successfully", sku, quantity }, { status: 201 });
-  } catch (error) {
-    return NextResponse.json({ message: "Error adding stock", error }, { status: 500 });
+  } catch (error:any) {
+    return NextResponse.json({ message: error.message, error }, { status: 500 });
   }
 }
