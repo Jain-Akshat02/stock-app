@@ -17,7 +17,7 @@ const Header = () => {
         </button>
         <button className="flex items-center bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors cursor-pointer" onClick={() => router.push('/record-sale')}
         >
-          <Minus size={20} className="mr-2" />
+          <Minus size={20} className="mr-2 " />
           Record Sale
         </button>
         <button className="p-2 rounded-full hover:bg-gray-100">

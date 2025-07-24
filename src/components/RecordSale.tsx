@@ -5,10 +5,12 @@ import { useState, useEffect } from "react";
 import {
   Minus,
   ShoppingCart,
+  X,
   Calendar as CalendarIcon,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import axios from "axios";
+import {useRouter} from "next/navigation";
 
 interface ProductVariant {
   _id: string;
@@ -35,6 +37,7 @@ const RecordSale = () => {
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
   const [notes, setNotes] = useState(""); // For customer name, invoice #, etc.
   const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
   // Computed State
   const selectedProduct = products.find((product) => product._id === selectedProductId);
@@ -148,8 +151,15 @@ const RecordSale = () => {
   return (
     <>
       <div className="max-w-4xl mx-auto p-4 md:p-8 font-sans">
+        <button
+          className="absolute top-35 right-70 text-gray-400 hover:text-pink-600 transition"
+          onClick={() => router.back()}
+          aria-label="Close"
+        >
+          <X size={28} />
+        </button>
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Record a Sale</h1>
+          <h1 className="text-3xl font-bold text-white">Record a Sale</h1>
           <p className="text-gray-600 mt-1">
             Log a new sale to update inventory levels.
           </p>
