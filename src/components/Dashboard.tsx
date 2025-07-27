@@ -15,7 +15,7 @@ import toast from "react-hot-toast";
 import InfoCard from "@/components/InfoCard";
 import { useEffect,useState } from "react";
 import axios from "axios";
-import { set } from "mongoose";
+import { useRouter} from 'next/navigation'
 // Type Definitions
 interface StockFlow {
   name: string;
@@ -88,6 +88,8 @@ const Dashboard = () => {
   const [totalSalesValue, setTotalSalesValue] = useState(0);
   const [lowStockCount, setLowStockCount] = useState(0);
   const [totalStockValue, setTotalStockValue] = useState(0);
+
+  const router = useRouter();
   useEffect(() => {
     const stockFetch = async () => {
       try {
@@ -107,20 +109,18 @@ const Dashboard = () => {
     };
     stockFetch();
   }, []); // Fetch stock data on component mount
-  useEffect(() =>{
+  useEffect(() => {
     const totalSales = async () => {
-    try {
-      const response = await axios.get("/api/sales/");
-      const { totalSales } = response.data;
-      setTotalSalesValue(totalSales);
-    } catch (error) {
-      console.log("Error fetching sales data:", error);
-      toast.error("Failed to fetch sales data");
-      
-    }
+      try {
+        const response = await axios.get("/api/sales");
+        setTotalSalesValue(response.data.totalSales);
+      } catch (error) {
+        console.log("Error fetching sales data:", error);
+        toast.error("Failed to fetch sales data");
+      }
+    };
     totalSales();
-  }}
-  , []); // Fetch sales data on component mount
+  }, []);
 
   return (
     <div className="space-y-6">

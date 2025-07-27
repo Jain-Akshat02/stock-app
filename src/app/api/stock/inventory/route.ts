@@ -41,8 +41,8 @@ export const POST = async (req: Request) => {
     }
     const product = await Product.create({ name, category, sku, variants });
     return new Response(JSON.stringify(product), { status: 201 });
-  } catch (error) {
-    return new Response(JSON.stringify({ message: "Error creating product", error }), { status: 500 });
+  } catch (error:any) {
+    return new Response(JSON.stringify({ message: error.message, error }), { status: 500 });
   }
 };
 
