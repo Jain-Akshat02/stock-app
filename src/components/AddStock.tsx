@@ -270,7 +270,7 @@ const EditProductModal = ({
           </button>
         </div>
         <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
-          <div className="font-semibold mb-2 text-gray-800">Variants (Size, MRP, Quantity)</div>
+          <div className="font-semibold mb-2 text-gray-800">Variants (Size, MRP)</div>
           {variants.map((v, idx) => (
             <div key={idx} className="flex gap-2 mb-2 items-center">
               <input
@@ -287,13 +287,7 @@ const EditProductModal = ({
                 value={v.mrp}
                 onChange={e => handleVariantChange(idx, "mrp", e.target.value)}
               />
-              <input
-                type="number"
-                className="border rounded-lg px-2 py-1 w-24 text-gray-600"
-                placeholder="Quantity"
-                value={v.quantity}
-                onChange={e => handleVariantChange(idx, "quantity", e.target.value)}
-              />
+
               <button
                 className="text-red-500 hover:text-red-700 border-pink-500 hover:border-pink-700 border rounded-lg px-2 py-1"
                 onClick={() => handleRemoveVariant(idx)}

@@ -10,7 +10,7 @@ import axios from "axios";
 const getStockStatus = (stock: number) => {
   if (stock === 0)
     return { text: "Out of Stock", color: "bg-red-100 text-red-800" };
-  if (stock <= 5)
+  if (stock < 5)
     return { text: "Low Stock", color: "bg-yellow-100 text-yellow-800" };
   return { text: "In Stock", color: "bg-green-100 text-green-800" };
 };
@@ -24,11 +24,13 @@ const Inventory = () => {
   const [selectedSize, setSelectedSize] = useState("All Sizes");
   const [stockStatus, setStockStatus] = useState("Current Status");
   const [searchQuery, setSearchQuery] = useState("");
+  const [newVariants, setNewVariants] = useState([{size: "", mrp: ""}])
+  
   const [newProduct, setNewProduct] = useState({
     name: "",
     sku: "",
     category: "Bras",
-    variants: DEFAULT_SIZES.map((size) => ({ size, mrp: "" })),
+    variants: DEFAULT_SIZES.map((size) => ({ size, mrp: "", quantity: "" })),
   });
 
   const handleVariantChange = (idx: number, field: string, value: string) => {
@@ -42,11 +44,12 @@ const Inventory = () => {
   const handleAddVariant = () => {
     setNewProduct((prev) => ({
       ...prev,
-      variants: [...prev.variants, { size: "", mrp: ""}],
+      variants: [...prev.variants, { size: "", mrp: "", quantity: "" }],
     }));
   };
 
   const handleRemoveVariant = (idx: number) => {
+    if (idx < DEFAULT_SIZES.length) return; // Don't remove default sizes
     setNewProduct((prev) => {
       const variants = prev.variants.filter((_, i) => i !== idx);
       return { ...prev, variants };
@@ -72,9 +75,11 @@ const Inventory = () => {
         sku: newProduct.sku,
         category: newProduct.category,
         variants: newProduct.variants
+          .filter((v) => v.quantity !== "" && !isNaN(Number(v.quantity)))
           .map((v) => ({
             size: v.size,
             mrp: Number(v.mrp),
+            quantity: Number(v.quantity),
           })),
       });
       toast.success("Product added!");
@@ -193,7 +198,6 @@ const Inventory = () => {
           <option>All Categories</option>
           <option>Bras</option>
           <option>Panties</option>
-          <option>Nightwear</option>
         </select>
         <select
           className="bg-white border border-gray-300 text-gray-700 text-sm rounded-lg focus:ring-pink-500 focus:border-pink-500 block p-2"
@@ -262,7 +266,7 @@ const Inventory = () => {
                 <td className="px-6 py-4">{entry.variants?.[0]?.size}</td>
                 <td className="px-6 py-4">₹{entry.variants?.[0]?.mrp}</td>
                 <td className="px-6 py-4 text-center font-bold text-gray-800">
-                  {entry.quantity}
+                  {Math.max(0, entry.quantity)}
                 </td>
                 <td className="px-6 py-4 text-center">
                   <span
@@ -287,17 +291,25 @@ const Inventory = () => {
                           )
                         ) {
                           try {
-                            await axios.delete(
-                              `/api/stock/entry?id=${entry._id}`
+                            await axios.patch(
+                              `/api/stock/inventory`,{
+                                data: {
+                                  _id: entry.product?._id,
+                                  removeVariant: { size: entry.variants?.[0].size, mrp: entry.variants?.[0].mrp }
+                                }
+                              }
                             );
                             toast.success("Stock entry deleted");
                             // Refresh inventory
                             const response = await axios.get(
-                              "/api/stock/entry"
+                              "/api/stock/inventory"
                             );
                             setProducts(response.data);
-                          } catch (error) {
+
+                          } catch (error:any) {
                             toast.error("Failed to delete stock entry");
+                            console.log(error.message,error);
+                            
                           }
                         }
                       }}
@@ -382,6 +394,15 @@ const Inventory = () => {
                         value={v.mrp}
                         onChange={(e) =>
                           handleVariantChange(idx, "mrp", e.target.value)
+                        }
+                      />
+                      <input
+                        type="number"
+                        className="border rounded-lg px-2 py-1 w-24"
+                        placeholder="Quantity"
+                        value={v.quantity}
+                        onChange={(e) =>
+                          handleVariantChange(idx, "quantity", e.target.value)
                         }
                       />
                       {idx >= DEFAULT_SIZES.length && (

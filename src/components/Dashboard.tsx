@@ -1,18 +1,15 @@
 // src/components/Dashboard.tsx
 "use client";
 
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer} from 'recharts';
 import InfoCard from '@/components/InfoCard';
-
+import { useEffect } from 'react';
+import axios from 'axios';
 // Type Definitions
 interface StockFlow {
   name: string;
   stockIn: number;
   stockOut: number;
-}
-interface CategoryDistribution {
-  name: string;
-  value: number;
 }
 interface Activity {
   id: string;
@@ -29,11 +26,6 @@ const stockData: StockFlow[] = [
   { name: 'Mar', stockIn: 200, stockOut: 980 }, { name: 'Apr', stockIn: 278, stockOut: 390 },
   { name: 'May', stockIn: 189, stockOut: 480 }, { name: 'Jun', stockIn: 239, stockOut: 380 },
 ];
-const categoryData: CategoryDistribution[] = [
-  { name: 'Bras', value: 400 }, { name: 'Panties', value: 300 },
-  { name: 'Nightwear', value: 300 }, { name: 'Shapewear', value: 200 },
-];
-const COLORS = ['#FF6B6B', '#FFD166', '#06D6A0', '#118AB2'];
 const recentActivity: Activity[] = [
   { id: 'SKU-8345', name: 'Satin Dreams Bra', type: 'Bra', qty: 50, date: '2024-07-20', status: 'Stock In' },
   { id: 'SKU-1923', name: 'Lace Comfort Panty', type: 'Panty', qty: -2, date: '2024-07-20', status: 'Sale' },
@@ -43,6 +35,23 @@ const recentActivity: Activity[] = [
 ];
 
 const Dashboard = () => {
+  useEffect(() => {
+    const stockFetch = async () => {
+      try {
+        const response = await axios.get("/api/stock/dashboard");
+        if (response.status === 200) {
+          
+          
+        } else {
+          console.error("Failed to fetch stock data:", response.statusText);
+        }
+      } catch (error) {
+        console.error("Error fetching stock data:", error); 
+      }
+    }
+    stockFetch();
+  }, []); // Fetch stock data on component mount
+  
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -65,17 +74,6 @@ const Dashboard = () => {
               <Bar dataKey="stockIn" fill="#4ade80" name="Stock In" radius={[4, 4, 0, 0]} />
               <Bar dataKey="stockOut" fill="#f87171" name="Stock Out" radius={[4, 4, 0, 0]} />
             </BarChart>
-          </ResponsiveContainer>
-        </div>
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h3 className="font-bold text-lg text-gray-800 mb-4">Stock by Category</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie data={categoryData} cx="50%" cy="50%" labelLine={false} outerRadius={100} fill="#8884d8" dataKey="value" label={({ name, percent }: any) => `${name} ${(percent * 100).toFixed(0)}%`}>
-                {categoryData.map((entry, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}
-              </Pie>
-              <Tooltip />
-            </PieChart>
           </ResponsiveContainer>
         </div>
       </div>

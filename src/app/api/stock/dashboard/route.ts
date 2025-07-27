@@ -1,17 +1,37 @@
 // src/app/api/stock/route.ts
 import { NextResponse } from 'next/server';
+import Product from '@/models/productModel';
+import connect from '@/config/dbConfig';
+import Stock from '@/models/stockModel';
 
-// This is an example GET handler.
-// In a real application, you would fetch this data from a database.
+
+connect();
+
 export async function GET(request: Request) {
-  const stockData = {
-    totalValue: 125430,
-    totalProducts: 1287,
-    lowStockItems: 23,
-    salesThisMonth: 12890,
-  };
-
-  return NextResponse.json(stockData);
+  const stockEntries = await Stock.find({});
+  const totalStock = stockEntries.reduce((sum:any, entry:any) => sum + (entry.quantity > 0 ? entry.quantity : 0), 0);
+  const totalSalesValue = stockEntries.reduce((sum:any, entry:any) =>  {
+    if(entry.quantity <0 && entry.variants && entry.variants[0]?.mrp){
+      return sum + (-entry.quantity)* entry.variants[0].mrp;
+    }
+    return sum;
+  }, 0
+  );
+  const lowStockCount = stockEntries.filter((entry:any) => entry.quantity <= 5).length;
+  const totalStockValue = stockEntries.reduce((sum:any, entry:any) => {
+    if(entry.quantity>0 && entry.variants && entry.variants[0]?.mrp){
+      return sum + entry.quantity * entry.variants[0].mrp;
+    }
+    return sum;
+  }, 0);
+  return NextResponse.json({
+    totalStock,
+    totalSalesValue,
+    lowStockCount,
+    totalStockValue
+  }, {
+    status: 200
+  });
 }
 export async function POST(request: Request) {
   try {

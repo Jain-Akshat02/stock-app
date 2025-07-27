@@ -79,5 +79,56 @@ export const PATCH = async (req: Request) => {
   }
 };
 
+export const DELETE = async (req: Request) => {
+  await connect();
+  try {
+    const data = await req.json();
+    console.log("Delete request data:", data);
+    
+    const { _id, removeVariant } = data;
+    
+    if(!_id){
+      return new Response(JSON.stringify({ message: "Missing product id" }), { status: 400 });
+    }
+
+    // If removeVariant is provided, remove only that variant
+    if (removeVariant) {
+      console.log("Removing variant:", removeVariant);
+      
+      // Remove the variant from the product
+      const updated = await Product.updateOne(
+        { _id },
+        { $pull: { variants: { size: removeVariant.size, mrp: removeVariant.mrp } } }
+      );
+      
+      if (updated.modifiedCount === 0) {
+        return new Response(JSON.stringify({ message: "Variant not found or product not found" }), { status: 404 });
+      }
+      
+      // Delete related stock entries for this specific variant
+      await Stock.deleteMany({ 
+        product: _id, 
+        "variants.size": removeVariant.size, 
+        "variants.mrp": removeVariant.mrp 
+      });
+      
+      return new Response(JSON.stringify({ message: "Variant deleted successfully" }), { status: 200 });
+    }
+    
+    // Otherwise, delete the whole product
+    console.log("Deleting whole product with id:", _id);
+    const deleted = await Product.findByIdAndDelete(_id);
+    if (!deleted) {
+      return new Response(JSON.stringify({ message: "Product not found" }), { status: 404 });
+    }
+    // Delete all related stock entries
+    await Stock.deleteMany({ product: _id });
+    return new Response(JSON.stringify({ message: "Product and related stock entries deleted" }), { status: 200 });
+  } catch (error) {
+    console.error("Delete error:", error);
+    return new Response(JSON.stringify({ message: "Error deleting product", error }), { status: 500 });
+  }
+}
+
 
 
