@@ -291,7 +291,7 @@ const Inventory = () => {
                           )
                         ) {
                           try {
-                            await axios.patch(
+                            await axios.delete(
                               `/api/stock/inventory`,{
                                 data: {
                                   _id: entry.product?._id,
@@ -302,7 +302,7 @@ const Inventory = () => {
                             toast.success("Stock entry deleted");
                             // Refresh inventory
                             const response = await axios.get(
-                              "/api/stock/inventory"
+                              "/api/stock/entry"
                             );
                             setProducts(response.data);
 
