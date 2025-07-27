@@ -134,6 +134,7 @@ const RecordSale = () => {
         await axios.post("/api/stock/entry", payload);
       }
       toast.success("Sale recorded successfully!");
+      router.refresh(); // <--- Refresh dashboard
       // Reset form on successful submission
       setSelectedProductId("");
       setSaleEntries([]);

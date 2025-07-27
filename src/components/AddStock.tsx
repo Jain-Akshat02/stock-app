@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import axios from "axios";
+import { useRouter } from "next/navigation";
 
 // --- MODAL COMPONENT for adding a new product ---
 // This component now handles its own API call to create a product.
@@ -326,6 +327,7 @@ const EditProductModal = ({
 
 // --- MAIN COMPONENT ---
 const AddStock = () => {
+  const router = useRouter();
   // State Management
   const [products, setProducts] = useState<any[]>([]);
   const [selectedProductId, setSelectedProductId] = useState("");
@@ -414,6 +416,7 @@ const AddStock = () => {
     try {
       await axios.post("/api/stock/entry", payload);
       toast.success("Stock added successfully!");
+      router.refresh(); // <--- Refresh dashboard
       // Reset form on successful submission
       setSelectedProductId("");
       setSizeStock([]);

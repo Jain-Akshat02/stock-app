@@ -11,6 +11,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
+import toast from "react-hot-toast";
 import InfoCard from "@/components/InfoCard";
 import { useEffect,useState } from "react";
 import axios from "axios";
@@ -92,10 +93,9 @@ const Dashboard = () => {
       try {
         const response = await axios.get("/api/stock/dashboard");
         if (response.status === 200) {
-          const { totalStock, totalSalesValue, lowStockCount, totalStockValue } = response.data;
-          console.log("Stock Data:", { totalStock, totalSalesValue, lowStockCount, totalStockValue });
+          const { totalStock, lowStockCount, totalStockValue } = response.data;
+          console.log("Stock Data:", { totalStock, lowStockCount, totalStockValue });
           setTotalStock(totalStock);
-          setTotalSalesValue(totalSalesValue);
           setLowStockCount(lowStockCount);
           setTotalStockValue(totalStockValue);
         } else {
@@ -107,6 +107,20 @@ const Dashboard = () => {
     };
     stockFetch();
   }, []); // Fetch stock data on component mount
+  useEffect(() =>{
+    const totalSales = async () => {
+    try {
+      const response = await axios.get("/api/sales/");
+      const { totalSales } = response.data;
+      setTotalSalesValue(totalSales);
+    } catch (error) {
+      console.log("Error fetching sales data:", error);
+      toast.error("Failed to fetch sales data");
+      
+    }
+    totalSales();
+  }}
+  , []); // Fetch sales data on component mount
 
   return (
     <div className="space-y-6">
@@ -131,7 +145,7 @@ const Dashboard = () => {
         />
         <InfoCard
           title="Sales This Month"
-          value="₹12,890"
+          value={`₹${totalSalesValue.toLocaleString()}`}
           change="+18.7%"
           changeType="increase"
         />
