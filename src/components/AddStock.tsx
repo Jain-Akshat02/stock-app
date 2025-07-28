@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Plus,
   X,
@@ -11,6 +11,7 @@ import {
 import toast from "react-hot-toast";
 import axios from "axios";
 import { useRouter } from "next/navigation";
+import { useCallback } from "react";
 
 // --- MODAL COMPONENT for adding a new product ---
 // This component now handles its own API call to create a product.
@@ -29,6 +30,7 @@ const NewProductModal = ({
   const [newCategory, setNewCategory] = useState("Bras"); // Default to a valid category
   const [newVariants, setNewVariants] = useState([{ size: "", MRP: "" }]);
   const [isSaving, setIsSaving] = useState(false);
+  const inputRefs = useRef<{ [size: string]: HTMLInputElement | null }>({});
 
   if (!isOpen) return null;
 
@@ -44,10 +46,6 @@ const NewProductModal = ({
     const updated = [...newVariants];
     updated[index][field] = value;
     setNewVariants(updated);
-  };
-
-  const handleRemoveVariant = (index: number) => {
-    setNewVariants(newVariants.filter((_, i) => i !== index));
   };
 
   // Handles submitting the new product to the backend
@@ -138,8 +136,6 @@ const NewProductModal = ({
           >
             <option>Bras</option>
             <option>Panties</option>
-            <option>Nightwear</option>
-            <option>Shapewear</option>
             <option>Other</option>
           </select>
 
@@ -167,12 +163,6 @@ const NewProductModal = ({
                     handleVariantChange(index, "MRP", e.target.value)
                   }
                 />
-                <button
-                  onClick={() => handleRemoveVariant(index)}
-                  className="p-2 text-red-500 hover:bg-red-50 rounded-md"
-                >
-                  <Trash2 size={18} />
-                </button>
               </div>
             ))}
             <button
@@ -245,11 +235,9 @@ const EditProductModal = ({
       const updated = {
         _id: product._id, // Ensure the _id is included for the patch
         name: product.name,
-        sku: product.sku,
         category: product.category,
         variants: variants.map((v) => ({
           size: v.size,
-          mrp: Number(v.mrp),
           quantity: Number(v.quantity) || 0,
         })),
       };
@@ -265,13 +253,20 @@ const EditProductModal = ({
     <div className="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center z-50 p-4">
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl">
         <div className="flex justify-between items-center p-5 border-b border-gray-200">
-          <h2 className="text-xl font-bold text-gray-800">Edit Product Variants</h2>
-          <button onClick={onClose} className="p-2 rounded-full hover:bg-gray-100 text-gray-500">
+          <h2 className="text-xl font-bold text-gray-800">
+            Edit Product Variants
+          </h2>
+          <button
+            onClick={onClose}
+            className="p-2 rounded-full hover:bg-gray-100 text-gray-500"
+          >
             <X size={24} />
           </button>
         </div>
         <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
-          <div className="font-semibold mb-2 text-gray-800">Variants (Size, MRP)</div>
+          <div className="font-semibold mb-2 text-gray-800">
+            Variants (Size, MRP)
+          </div>
           {variants.map((v, idx) => (
             <div key={idx} className="flex gap-2 mb-2 items-center">
               <input
@@ -279,14 +274,18 @@ const EditProductModal = ({
                 className="border rounded-lg px-2 py-1 w-20 text-gray-600"
                 placeholder="Size"
                 value={v.size}
-                onChange={e => handleVariantChange(idx, "size", e.target.value)}
+                onChange={(e) =>
+                  handleVariantChange(idx, "size", e.target.value)
+                }
               />
               <input
                 type="number"
                 className="border rounded-lg px-2 py-1 w-24 text-gray-600"
                 placeholder="MRP"
                 value={v.mrp}
-                onChange={e => handleVariantChange(idx, "mrp", e.target.value)}
+                onChange={(e) =>
+                  handleVariantChange(idx, "mrp", e.target.value)
+                }
               />
 
               <button
@@ -331,16 +330,31 @@ const AddStock = () => {
   // State Management
   const [products, setProducts] = useState<any[]>([]);
   const [selectedProductId, setSelectedProductId] = useState("");
-  const [sizeStock, setSizeStock] = useState<any[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
   const [notes, setNotes] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState("Bras");
+  const [sizeQuantities, setSizeQuantities] = useState<{
+    [size: string]: string;
+  }>({});
+  const inputRefs = useRef<{ [size: string]: HTMLInputElement | null }>({});
+  const SIZE_SETS: Record<string, string[]> = {
+    Bras: ["28", "30", "32", "34", "36", "38", "40", "42", "44"],
+    Panties: ["S", "M", "L", "XL", "XXL", "3XL", "4XL"],
+  };
 
   // Computed State
   const selectedProduct = products.find((p) => p._id === selectedProductId);
-  const variants = selectedProduct?.variants || [];
+
+  // Reset size quantities when category changes
+  useEffect(() => {
+    const newQuantities: { [size: string]: string } = {};
+    (SIZE_SETS[selectedCategory] || []).forEach((size) => {
+      newQuantities[size] = "";
+    });
+    setSizeQuantities(newQuantities);
+  }, [selectedCategory]);
 
   // --- DATA FETCHING ---
   // Fetch all products from the backend when the component mounts
@@ -349,33 +363,33 @@ const AddStock = () => {
       try {
         const response = await axios.get("/api/stock/inventory");
         setProducts(response.data);
-      } catch (error:any) {
+      } catch (error: any) {
         console.error("Failed to fetch products:", error.message);
         toast.error("Product already exists.");
       }
     };
     fetchProducts();
   }, []);
-  // Empty dependency array ensures this runs only once
 
   // --- HANDLERS ---
   const handleProductChange = (productId: string) => {
     setSelectedProductId(productId);
-    const product = products.find((p) => p._id === productId);
-    // Reset stock inputs when a new product is selected
-    setSizeStock(
-      product ? product.variants.map(() => ({ quantity: "", cost: "" })) : []
-    );
   };
 
-  const handleSizeStockChange = (
-    index: number,
-    field: "quantity" | "cost",
-    value: string
+  const handleKeyPress = (
+    e: React.KeyboardEvent<HTMLInputElement>,
+    currentSize: string
   ) => {
-    const updatedStock = [...sizeStock];
-    updatedStock[index] = { ...updatedStock[index], [field]: value };
-    setSizeStock(updatedStock);
+    if (e.key === "Enter") {
+      e.preventDefault();
+      const sizes = SIZE_SETS[selectedCategory] || [];
+      const currentIndex = sizes.indexOf(currentSize);
+      const nextSize = sizes[currentIndex + 1];
+
+      if (nextSize && inputRefs.current[nextSize]) {
+        inputRefs.current[nextSize]?.focus();
+      }
+    }
   };
 
   // Callback for when a new product is successfully created in the modal
@@ -391,37 +405,40 @@ const AddStock = () => {
       return toast.error("Please select a product and a received date.");
     }
 
-    const validStockEntries = variants
-      .map((variant: any, index: any) => ({
-        variantId: variant._id, // Assumes variants from the DB have an 'id'
-        quantity: parseInt(sizeStock[index]?.quantity || "0", 10),
-        mrp: variant.mrp,
-        size: variant.size,
-      }))
-      .filter((entry: { quantity: number }) => entry.quantity > 0);
+    const stockEntries = Object.entries(sizeQuantities)
+      .filter(([_, qty]) => Number(qty) > 0)
+      .map(([size, qty]) => ({
+        size,
+        quantity: Number(qty),
+      }));
 
-    if (validStockEntries.length === 0) {
-      return toast.error("Please enter a quantity for at least one variant.");
+    if (stockEntries.length === 0) {
+      return toast.error("Please enter a quantity for at least one size.");
     }
 
     const payload = {
       productId: selectedProductId,
+      category: selectedCategory,
       receivedDate: date,
       notes: notes,
-      stockEntries: validStockEntries,
-      
+      stockEntries,
     };
 
     setIsLoading(true);
     try {
       await axios.post("/api/stock/entry", payload);
       toast.success("Stock added successfully!");
-      router.refresh(); // <--- Refresh dashboard
+      router.refresh();
       // Reset form on successful submission
       setSelectedProductId("");
-      setSizeStock([]);
       setDate(new Date().toISOString().split("T")[0]);
       setNotes("");
+      // Reset size quantities
+      const newQuantities: { [size: string]: string } = {};
+      (SIZE_SETS[selectedCategory] || []).forEach((size) => {
+        newQuantities[size] = "";
+      });
+      setSizeQuantities(newQuantities);
     } catch (error: any) {
       console.error(error.message);
       const message = error.response?.data?.message || "Failed to add stock.";
@@ -438,15 +455,7 @@ const AddStock = () => {
         onClose={() => setIsModalOpen(false)}
         onAddProduct={handleAddNewProduct}
       />
-      <EditProductModal
-        isOpen={isEditModalOpen}
-        onClose={() => setIsEditModalOpen(false)}
-        product={selectedProduct}
-        onSave={(updatedProduct) => {
-          setProducts((prev) => prev.map((p) => p._id === updatedProduct._id ? updatedProduct : p));
-          setSizeStock(updatedProduct.variants.map(() => ({ quantity: "", cost: "" })));
-        }}
-      />
+
       <div className="max-w-4xl mx-auto p-4 md:p-8 font-sans">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Add Stock</h1>
@@ -459,7 +468,20 @@ const AddStock = () => {
           {/* --- Step 1: Product Selection --- */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
-              1. Select Product
+              1. Select Category
+            </label>
+            <select
+              className="bg-white border border-gray-300 text-gray-700 text-sm rounded-lg focus:ring-pink-500 focus:border-pink-500 block p-2"
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+            >
+              <option>Select Category</option>
+              <option>Bras</option>
+              <option>Panties</option>
+            </select>
+
+            <label className="mt-4 block text-sm font-semibold text-gray-700 mb-2">
+              2. Select Quality
             </label>
             <div className="flex items-center gap-2">
               <select
@@ -468,7 +490,7 @@ const AddStock = () => {
                 onChange={(e) => handleProductChange(e.target.value)}
               >
                 <option value="" disabled>
-                  Select a product...
+                  Select Quality
                 </option>
                 {products.map((p) => (
                   <option key={p._id} value={p._id}>
@@ -476,18 +498,12 @@ const AddStock = () => {
                   </option>
                 ))}
               </select>
+
               <button
                 onClick={() => setIsModalOpen(true)}
                 className="flex items-center justify-center text-gray-700 bg-gray-100 border border-gray-200 px-5 py-2.5 rounded-lg hover:bg-gray-200 transition-all font-semibold flex-shrink-0"
               >
                 <Plus size={18} className="mr-1.5" /> New
-              </button>
-              <button
-                onClick={() => setIsEditModalOpen(true)}
-                disabled={!selectedProduct}
-                className="flex items-center justify-center text-gray-700 bg-gray-100 border border-gray-200 px-5 py-2.5 rounded-lg hover:bg-gray-200 transition-all font-semibold flex-shrink-0 disabled:opacity-50"
-              >
-                <PackagePlus size={18} className="mr-1.5" /> Edit Product
               </button>
             </div>
           </div>
@@ -496,7 +512,7 @@ const AddStock = () => {
           {selectedProductId && (
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                2. Enter Stock Details
+                3. Enter Stock Details
               </label>
               <div className="overflow-x-auto border rounded-lg">
                 <table className="min-w-full">
@@ -505,85 +521,38 @@ const AddStock = () => {
                       <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
                         Size
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
-                        MRP
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
-                        Quantity
-                      </th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {variants.map((v: any, idx: number) => (
-                      <tr key={v._id || idx}>
-                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-800 font-medium">
-                          {v.size}
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-800 font-medium">
-                          {v.mrp}
-                        </td>
-                        <td className="px-4 py-3">
-                          <input
-                            type="number"
-                            min="0"
-                            className="block w-full px-3 py-1.5 text-sm rounded-md border-gray-300 shadow-sm focus:border-pink-500 focus:ring-pink-500 text-gray-800"
-                            placeholder="e.g., 50"
-                            value={sizeStock[idx]?.quantity || ""}
-                            onChange={(e) =>
-                              handleSizeStockChange(
-                                idx,
-                                "quantity",
-                                e.target.value
-                              ) 
-                            }
-                          />
-                        </td>
-                      </tr>
+                  <div className="flex gap-4 m-3">
+                    {(SIZE_SETS[selectedCategory] || []).map((size) => (
+                      <div key={size} className="flex flex-col items-center">
+                        <span className="mb-1 font-semibold text-gray-800">
+                          {size}
+                        </span>
+                        <input
+                          ref={(el) => {
+                            inputRefs.current[size] = el;
+                          }}
+                          type="number"
+                          min="0"
+                          className="w-20 px-2 py-1 border rounded text-center text-gray-800"
+                          placeholder="Qty"
+                          value={sizeQuantities[size] || ""}
+                          onChange={(e) =>
+                            setSizeQuantities((q) => ({
+                              ...q,
+                              [size]: e.target.value,
+                            }))
+                          }
+                          onKeyPress={(e) => handleKeyPress(e, size)}
+                        />
+                      </div>
                     ))}
-                  </tbody>
+                  </div>
                 </table>
               </div>
             </div>
           )}
-
-          {/* --- Steps 3 & 4: Date and Notes --- */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label
-                htmlFor="received-date"
-                className="block text-sm font-semibold text-gray-700 mb-2"
-              >
-                3. Date Received
-              </label>
-              <div className="relative">
-                <input
-                  type="date"
-                  id="received-date"
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                  className="block w-full px-4 py-2.5 rounded-lg border border-gray-300 bg-white text-gray-800 transition focus:outline-none focus:ring-2 focus:ring-pink-400"
-                />
-                <CalendarIcon className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
-              </div>
-            </div>
-            <div>
-              <label
-                htmlFor="notes"
-                className="block text-sm font-semibold text-gray-700 mb-2"
-              >
-                4. Notes (Optional)
-              </label>
-              <textarea
-                id="notes"
-                rows={1}
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                className="block w-full px-4 py-2.5 rounded-lg border border-gray-300 bg-white text-gray-800 transition focus:outline-none focus:ring-2 focus:ring-pink-400"
-                placeholder="Add reference notes..."
-              ></textarea>
-            </div>
-          </div>
-
           {/* --- Final Actions --- */}
           <div className="flex justify-end gap-3 pt-4 border-t">
             <button className="px-5 py-2.5 rounded-lg text-gray-700 bg-gray-100 hover:bg-gray-200 font-semibold transition-all">

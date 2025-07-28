@@ -9,7 +9,6 @@ const stockSchema = mongoose.Schema({
     variants:[
         {
             size: { type: String, required: true },
-            mrp: { type: Number, required: true },
         }
     ],
     quantity: {
@@ -19,9 +18,6 @@ const stockSchema = mongoose.Schema({
     date: {
         type: Date,
         default: Date.now
-    },
-    notes: {
-        type: String
     },
     status: {
         type: String,

@@ -10,25 +10,15 @@ const productSchema = mongoose.Schema({
         type: String,
         required: true,
     },
-    mrp: {
-        type: Number,
-        required: false,
-    },
     variants: [
         {
             size: { type: String, required: true },
-            mrp: { type: Number, required: true },
             quantity: { type: Number, required: true, default: 0 },
         }
     ],
     dateAdded: {
         type: Date,
         default: Date.now
-    },
-    sku: {
-        type: String,
-        required: false,
-        unique: false
     },
 })
 

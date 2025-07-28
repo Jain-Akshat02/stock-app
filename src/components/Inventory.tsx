@@ -24,7 +24,7 @@ const Inventory = () => {
   const [selectedSize, setSelectedSize] = useState("All Sizes");
   const [stockStatus, setStockStatus] = useState("Current Status");
   const [searchQuery, setSearchQuery] = useState("");
-  const [newVariants, setNewVariants] = useState([{size: "", mrp: ""}])
+  const [selectedProductId, setSelectedProductId] = useState("All Products");
   
   const [newProduct, setNewProduct] = useState({
     name: "",
@@ -61,13 +61,6 @@ const Inventory = () => {
     if (!newProduct.name || !newProduct.category) {
       toast.error("Name and category are required");
       return;
-    }
-    // Validate all variants have size and mrp (but not quantity)
-    for (const v of newProduct.variants) {
-      if (!v.size || v.mrp === "") {
-        toast.error("Each variant must have a size and MRP");
-        return;
-      }
     }
     try {
       await axios.post("/api/stock/inventory", {
@@ -195,34 +188,14 @@ const Inventory = () => {
           value={selectedCategory}
           onChange={(e) => setSelectedCategory(e.target.value)}
         >
-          <option>All Categories</option>
+          <option>Select Category</option>
           <option>Bras</option>
           <option>Panties</option>
-        </select>
-        <select
-          className="bg-white border border-gray-300 text-gray-700 text-sm rounded-lg focus:ring-pink-500 focus:border-pink-500 block p-2"
-          value={selectedSize}
-          onChange={(e) => setSelectedSize(e.target.value)}
-        >
-          <option>All Sizes</option>
-          <option>S</option>
-          <option>M</option>
-          <option>L</option>
-        </select>
-        <select
-          className="bg-white border border-gray-300 text-gray-700 text-sm rounded-lg focus:ring-pink-500 focus:border-pink-500 block p-2"
-          value={stockStatus}
-          onChange={(e) => setStockStatus(e.target.value)}
-        >
-          <option>Current Status</option>
-          <option>In Stock</option>
-          <option>Low Stock</option>
-          <option>Out of Stock</option>
         </select>
       </div>
 
       {/* Inventory Table */}
-      <div className="bg-white rounded-xl shadow-lg overflow-x-auto border border-gray-100 mt-4">
+      {/* <div className="bg-white rounded-xl shadow-lg overflow-x-auto border border-gray-100 mt-4">
         <table className="w-full text-sm text-left text-gray-700">
           <thead className="text-xs font-bold text-gray-700 uppercase bg-gray-50">
             <tr>
@@ -322,7 +295,21 @@ const Inventory = () => {
             ))}
           </tbody>
         </table>
-      </div>
+      </div> */}
+      <select className="bg-white border border-gray-700 text-sm rounded-lg focus:ring-pi k-500 focus:border-pink-500 block p-2 text-gray-800"
+        value={selectedProductId}
+        onChange={(e) => {
+          setSelectedProductId(e.target.value);
+        }}
+      >
+        <option value="Quality">Quality</option>
+        {aggregatedProducts.map((entry:any) => (
+          <option key={entry._id} value={entry._id}>
+            {entry.product?.name}
+          </option>
+        ))
+        }
+      </select>
 
       {/* Add/Edit Product Modal */}
       {isModalOpen && (
