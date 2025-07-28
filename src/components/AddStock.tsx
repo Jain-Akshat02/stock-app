@@ -23,14 +23,14 @@ const NewProductModal = ({
   onClose: () => void;
   onAddProduct: (newProduct: any) => void;
 }) => {
-  if (!isOpen) return null;
-
   // State for the new product form
   const [newProductName, setNewProductName] = useState("");
   const [newSku, setNewSku] = useState("");
   const [newCategory, setNewCategory] = useState("Bras"); // Default to a valid category
   const [newVariants, setNewVariants] = useState([{ size: "", MRP: "" }]);
   const [isSaving, setIsSaving] = useState(false);
+
+  if (!isOpen) return null;
 
   const handleAddVariant = () => {
     setNewVariants([...newVariants, { size: "", MRP: "" }]);

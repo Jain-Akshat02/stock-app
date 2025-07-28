@@ -1,24 +1,23 @@
 // src/app/api/stock/route.ts
 import { NextResponse } from 'next/server';
-import Product from '@/models/productModel';
 import connect from '@/config/dbConfig';
 import Stock from '@/models/stockModel';
 
 
 connect();
 
-export async function GET(request: Request) {
+export async function GET() {
   const stockEntries = await Stock.find({});
-  const totalStock = stockEntries.reduce((sum:any, entry:any) => sum + (entry.quantity > 0 ? entry.quantity : 0), 0);
-  const totalSalesValue = stockEntries.reduce((sum:any, entry:any) =>  {
+  const totalStock = stockEntries.reduce((sum: number, entry: any) => sum + (entry.quantity > 0 ? entry.quantity : 0), 0);
+  const totalSalesValue = stockEntries.reduce((sum: number, entry: any) =>  {
     if(entry.quantity <0 && entry.variants && entry.variants[0]?.mrp){
       return sum + (-entry.quantity)* entry.variants[0].mrp;
     }
     return sum;
   }, 0
   );
-  const lowStockCount = stockEntries.filter((entry:any) => entry.quantity <= 5).length;
-  const totalStockValue = stockEntries.reduce((sum:any, entry:any) => {
+  const lowStockCount = stockEntries.filter((entry: any) => entry.quantity <= 5).length;
+  const totalStockValue = stockEntries.reduce((sum: number, entry: any) => {
     if(entry.quantity>0 && entry.variants && entry.variants[0]?.mrp){
       return sum + entry.quantity * entry.variants[0].mrp;
     }
@@ -44,7 +43,7 @@ export async function POST(request: Request) {
     console.log(`Received stock update: Add ${quantity} to SKU ${sku}`);
 
     return NextResponse.json({ message: "Stock added successfully", sku, quantity }, { status: 201 });
-  } catch (error:any) {
+  } catch (error: any) {
     return NextResponse.json({ message: error.message, error }, { status: 500 });
   }
 }

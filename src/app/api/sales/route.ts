@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 connect();
 
-export const GET = async (req: NextRequest) => {
+export const GET = async () => {
   try {
 
     const now = new Date();
@@ -16,17 +16,15 @@ export const GET = async (req: NextRequest) => {
     const salesEntries = await Stock.find({
       quantity: { $lt: 0 },
       createdAt: { $gte: startDate, $lte: endDate },
-    }).populate("product");
+    });
 
     let totalSales = 0;
-    let totalItems = 0;
     for(const entry of salesEntries){
         const quantity = Math.abs(entry.quantity);
         const mrp = entry.variants?.[0]?.mrp || 0;
         totalSales += quantity*mrp;
-        totalItems += quantity;
     }
-    return NextResponse.json({totalSales,totalItems});
+    return NextResponse.json({totalSales},{status: 200});
     
   } catch (error:any) {
     return NextResponse.json({ error: error.message }, { status: 500 });

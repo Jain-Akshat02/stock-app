@@ -15,7 +15,6 @@ import toast from "react-hot-toast";
 import InfoCard from "@/components/InfoCard";
 import { useEffect,useState } from "react";
 import axios from "axios";
-import { useRouter} from 'next/navigation'
 // Type Definitions
 interface StockFlow {
   name: string;
@@ -89,7 +88,6 @@ const Dashboard = () => {
   const [lowStockCount, setLowStockCount] = useState(0);
   const [totalStockValue, setTotalStockValue] = useState(0);
 
-  const router = useRouter();
   useEffect(() => {
     const stockFetch = async () => {
       try {

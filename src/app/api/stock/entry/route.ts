@@ -88,7 +88,7 @@ export const POST = async (req: NextRequest) => {
   return NextResponse.json({ message: "Success" }, { status: 201 });
 };
 
-export const GET = async (req: NextRequest) => {
+export const GET = async () => {
   try {
     const stocks = await Stock.find()
       .populate({
