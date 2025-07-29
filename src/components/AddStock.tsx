@@ -121,13 +121,6 @@ const NewProductModal = ({
               value={newProductName}
               onChange={(e) => setNewProductName(e.target.value)}
             />
-            <input
-              type="text"
-              placeholder="SKU (e.g., 'SR-001')"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500 text-gray-800"
-              value={newSku}
-              onChange={(e) => setNewSku(e.target.value)}
-            />
           </div>
           <select
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500 text-gray-800"
@@ -140,37 +133,6 @@ const NewProductModal = ({
           </select>
 
           <div className="border-t pt-4">
-            <h3 className="font-semibold mb-2 text-gray-800">
-              Product Variants (Size & MRP)
-            </h3>
-            {newVariants.map((variant, index) => (
-              <div key={index} className="flex items-center gap-2 mb-2">
-                <input
-                  type="text"
-                  placeholder="Size (e.g., 'M')"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500 text-gray-800"
-                  value={variant.size}
-                  onChange={(e) =>
-                    handleVariantChange(index, "size", e.target.value)
-                  }
-                />
-                <input
-                  type="text"
-                  placeholder="MRP (e.g., 29.99)"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500 text-gray-800"
-                  value={variant.MRP}
-                  onChange={(e) =>
-                    handleVariantChange(index, "MRP", e.target.value)
-                  }
-                />
-              </div>
-            ))}
-            <button
-              onClick={handleAddVariant}
-              className="text-sm font-semibold text-pink-600 hover:text-pink-800 mt-2"
-            >
-              + Add another variant
-            </button>
           </div>
         </div>
         <div className="flex justify-end items-center p-5 border-t border-gray-200 gap-3">
