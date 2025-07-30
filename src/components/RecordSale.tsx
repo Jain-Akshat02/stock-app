@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { ShoppingCart, X, Minus } from "lucide-react";
+import { ShoppingCart, X } from "lucide-react";
 import toast from "react-hot-toast";
 import axios from "axios";
 import { useRouter } from "next/navigation";
@@ -18,9 +18,9 @@ const RecordSale = () => {
   const [sizeQuantities, setSizeQuantities] = useState<{
     [size: string]: string;
   }>({});
-  const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
-  const [notes, setNotes] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [selectProductId, setSelectProductId] = useState("");
+  const [products, setProducts] = useState<any[]>([]);
   const router = useRouter();
   const inputRefs = useRef<{ [size: string]: HTMLInputElement | null }>({});
 
@@ -32,6 +32,26 @@ const RecordSale = () => {
     });
     setSizeQuantities(newQuantities);
   }, [selectedCategory]);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await axios.get("/api/stock/inventory", {
+          params: { category: selectedCategory
+        }
+        });
+        console.log(response.data);
+        setProducts(response.data.products);
+      } catch (error) {
+        console.log("Failed to fetch products:", error);
+        toast.error("Failed to load products. Please try again later.");
+      }
+    }
+    fetchProducts();
+  },[selectedCategory]);
+  const handleProductChange = (selectProduct: string) => {
+    setSelectProductId(selectProduct);
+  }
 
   // Handle Enter key press to move to next input
   const handleKeyPress = (
@@ -69,17 +89,13 @@ const RecordSale = () => {
       // Send all sale entries in one payload
       const payload = {
         category: selectedCategory,
-        date,
-        notes,
-        saleEntries,
+        sale:saleEntries
       };
-      await axios.post("/api/stock/sale", payload);
+      await axios.post("/api/stock/entry", payload);
       toast.success("Sale recorded successfully!");
       router.refresh();
       // Reset form
       setSelectedCategory("Bras");
-      setDate(new Date().toISOString().split("T")[0]);
-      setNotes("");
     } catch (error: any) {
       console.error("Sale submission failed:", error);
       const message = error.response?.data?.message || "Failed to record sale.";
@@ -115,9 +131,27 @@ const RecordSale = () => {
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
           >
+            <option>Select Category</option>
             <option>Bras</option>
             <option>Panties</option>
           </select>
+          <label className="block text-sm font-semibold text-gray-700 mb-2 mt-2">
+            2. Select Quality
+          </label>
+          <select
+                className="block w-full px-4 py-2.5 rounded-lg border border-gray-300 bg-white text-gray-800 transition focus:outline-none focus:ring-2 focus:ring-pink-400 flex-grow"
+                value={selectProductId}
+                onChange={(e) => handleProductChange(e.target.value)}
+              >
+                <option value="" disabled>
+                 Select Quality
+                </option>
+                {products.map((p) => (
+                  <option key={p._id} value={p._id}>
+                    {p.name}
+                  </option>
+                ))}
+              </select>
         </div>
         {/* --- Step 2: Enter Sale Quantities --- */}
         <div>
@@ -156,50 +190,12 @@ const RecordSale = () => {
             ))}
           </div>
         </div>
-        {/* --- Step 3: Date and Notes --- */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label
-              htmlFor="sale-date"
-              className="block text-sm font-semibold text-gray-700 mb-2"
-            >
-              3. Sale Date
-            </label>
-            <div className="relative">
-              <input
-                type="date"
-                id="sale-date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                className="block w-full px-4 py-2.5 rounded-lg border border-gray-300 bg-white text-gray-800 transition focus:outline-none focus:ring-2 focus:ring-pink-400"
-              />
-            </div>
-          </div>
-          <div>
-            <label
-              htmlFor="notes"
-              className="block text-sm font-semibold text-gray-700 mb-2"
-            >
-              4. Notes (Optional)
-            </label>
-            <textarea
-              id="notes"
-              rows={1}
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              className="block w-full px-4 py-2.5 rounded-lg border border-gray-300 bg-white text-gray-800 transition focus:outline-none focus:ring-2 focus:ring-pink-400"
-              placeholder="Add reference notes..."
-            ></textarea>
-          </div>
-        </div>
         {/* --- Final Actions --- */}
         <div className="flex justify-end gap-3 pt-4 border-t">
           <button
             className="px-5 py-2.5 rounded-lg text-gray-700 bg-gray-100 hover:bg-gray-200 font-semibold transition-all"
             onClick={() => {
               setSelectedCategory("Bras");
-              setDate(new Date().toISOString().split("T")[0]);
-              setNotes("");
               setSizeQuantities({});
             }}
           >

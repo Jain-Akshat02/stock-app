@@ -4,14 +4,12 @@ import { useState, useEffect, useRef } from "react";
 import {
   Plus,
   X,
-  Calendar as CalendarIcon,
   PackagePlus,
   Trash2,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import axios from "axios";
 import { useRouter } from "next/navigation";
-import { useCallback } from "react";
 
 // --- MODAL COMPONENT for adding a new product ---
 // This component now handles its own API call to create a product.
@@ -28,7 +26,6 @@ const NewProductModal = ({
   const [newProductName, setNewProductName] = useState("");
   const [newCategory, setNewCategory] = useState("Bras"); // Default to a valid category
   const [isSaving, setIsSaving] = useState(false);
-  const inputRefs = useRef<{ [size: string]: HTMLInputElement | null }>({});
 
   if (!isOpen) return null;
   // Handles submitting the new product to the backend
@@ -132,13 +129,13 @@ const AddStock = () => {
   const [products, setProducts] = useState<any[]>([]);
   const [selectedProductId, setSelectedProductId] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("Bras");
   const [sizeQuantities, setSizeQuantities] = useState<{
     [size: string]: string;
   }>({});
   const inputRefs = useRef<{ [size: string]: HTMLInputElement | null }>({});
+
   const SIZE_SETS: Record<string, string[]> = {
     Bras: ["28", "30", "32", "34", "36", "38", "40", "42", "44"],
     Panties: ["S", "M", "L", "XL", "XXL", "3XL", "4XL"],
@@ -201,7 +198,7 @@ const AddStock = () => {
 
   // Handles submitting the final stock information
   const handleSubmitStock = async () => {
-    if (!selectedProductId || !date) {
+    if (!selectedProductId) {
       return toast.error("Please select a product.");
     }
 
