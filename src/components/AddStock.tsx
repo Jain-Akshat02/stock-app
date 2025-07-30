@@ -26,51 +26,21 @@ const NewProductModal = ({
 }) => {
   // State for the new product form
   const [newProductName, setNewProductName] = useState("");
-  const [newSku, setNewSku] = useState("");
   const [newCategory, setNewCategory] = useState("Bras"); // Default to a valid category
-  const [newVariants, setNewVariants] = useState([{ size: "", MRP: "" }]);
   const [isSaving, setIsSaving] = useState(false);
   const inputRefs = useRef<{ [size: string]: HTMLInputElement | null }>({});
 
   if (!isOpen) return null;
-
-  const handleAddVariant = () => {
-    setNewVariants([...newVariants, { size: "", MRP: "" }]);
-  };
-
-  const handleVariantChange = (
-    index: number,
-    field: "size" | "MRP",
-    value: string
-  ) => {
-    const updated = [...newVariants];
-    updated[index][field] = value;
-    setNewVariants(updated);
-  };
-
   // Handles submitting the new product to the backend
   const handleSubmit = async () => {
     // 1. Frontend Validation
     if (!newProductName) {
       return toast.error("Product Name is required.");
     }
-    const validVariants = newVariants.filter((v) => v.size && v.MRP);
-    if (validVariants.length === 0) {
-      return toast.error(
-        "Please add at least one valid variant with both Size and MRP."
-      );
-    }
-
     // 2. Assemble payload for the API (without a frontend ID)
     const payload = {
       name: newProductName,
-      sku: newSku,
       category: newCategory,
-      // Ensure variants are structured correctly, e.g., converting MRP to a number
-      variants: validVariants.map((v) => ({
-        size: v.size,
-        mrp: parseFloat(v.MRP) || 0,
-      })),
     };
 
     setIsSaving(true);
@@ -155,137 +125,6 @@ const NewProductModal = ({
   );
 };
 
-// --- MODAL COMPONENT for editing a product's variants ---
-const EditProductModal = ({
-  isOpen,
-  onClose,
-  product,
-  onSave,
-}: {
-  isOpen: boolean;
-  onClose: () => void;
-  product: any;
-  onSave: (updatedProduct: any) => void;
-}) => {
-  const [variants, setVariants] = useState<any[]>([]);
-  useEffect(() => {
-    setVariants(product?.variants ? [...product.variants] : []);
-  }, [product]);
-  if (!isOpen || !product) return null;
-  const handleVariantChange = (idx: number, field: string, value: string) => {
-    setVariants((prev) => {
-      const arr = [...prev];
-      arr[idx] = { ...arr[idx], [field]: value };
-      return arr;
-    });
-  };
-  const handleAddVariant = () => {
-    setVariants((prev) => [...prev, { size: "", mrp: "", quantity: 0 }]);
-  };
-  const handleRemoveVariant = (idx: number) => {
-    setVariants((prev) => prev.filter((_, i) => i !== idx));
-  };
-  const handleSave = async () => {
-    // Validate all variants have size and mrp
-    for (const v of variants) {
-      if (!v.size || v.mrp === "") {
-        toast.error("Each variant must have a size and MRP");
-        return;
-      }
-    }
-    try {
-      const updated = {
-        _id: product._id, // Ensure the _id is included for the patch
-        name: product.name,
-        category: product.category,
-        variants: variants.map((v) => ({
-          size: v.size,
-          quantity: Number(v.quantity) || 0,
-        })),
-      };
-      const response = await axios.patch("/api/stock/inventory", updated);
-      toast.success("Product updated!");
-      onSave(response.data);
-      onClose();
-    } catch (error) {
-      toast.error("Failed to update product");
-    }
-  };
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl">
-        <div className="flex justify-between items-center p-5 border-b border-gray-200">
-          <h2 className="text-xl font-bold text-gray-800">
-            Edit Product Variants
-          </h2>
-          <button
-            onClick={onClose}
-            className="p-2 rounded-full hover:bg-gray-100 text-gray-500"
-          >
-            <X size={24} />
-          </button>
-        </div>
-        <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
-          <div className="font-semibold mb-2 text-gray-800">
-            Variants (Size, MRP)
-          </div>
-          {variants.map((v, idx) => (
-            <div key={idx} className="flex gap-2 mb-2 items-center">
-              <input
-                type="text"
-                className="border rounded-lg px-2 py-1 w-20 text-gray-600"
-                placeholder="Size"
-                value={v.size}
-                onChange={(e) =>
-                  handleVariantChange(idx, "size", e.target.value)
-                }
-              />
-              <input
-                type="number"
-                className="border rounded-lg px-2 py-1 w-24 text-gray-600"
-                placeholder="MRP"
-                value={v.mrp}
-                onChange={(e) =>
-                  handleVariantChange(idx, "mrp", e.target.value)
-                }
-              />
-
-              <button
-                className="text-red-500 hover:text-red-700 border-pink-500 hover:border-pink-700 border rounded-lg px-2 py-1"
-                onClick={() => handleRemoveVariant(idx)}
-                type="button"
-              >
-                Remove
-              </button>
-            </div>
-          ))}
-          <button
-            className="mt-2 px-3 py-1 bg-pink-500 text-white rounded-lg hover:bg-pink-600"
-            onClick={handleAddVariant}
-            type="button"
-          >
-            + Add Variant
-          </button>
-        </div>
-        <div className="flex justify-end items-center p-5 border-t border-gray-200 gap-3">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 rounded-md text-gray-700 bg-gray-100 hover:bg-gray-200"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleSave}
-            className="px-4 py-2 rounded-md text-white bg-pink-600 hover:bg-pink-700 font-semibold"
-          >
-            Save Changes
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
 // --- MAIN COMPONENT ---
 const AddStock = () => {
   const router = useRouter();
@@ -294,7 +133,6 @@ const AddStock = () => {
   const [selectedProductId, setSelectedProductId] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
-  const [notes, setNotes] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("Bras");
   const [sizeQuantities, setSizeQuantities] = useState<{
@@ -305,9 +143,6 @@ const AddStock = () => {
     Bras: ["28", "30", "32", "34", "36", "38", "40", "42", "44"],
     Panties: ["S", "M", "L", "XL", "XXL", "3XL", "4XL"],
   };
-
-  // Computed State
-  const selectedProduct = products.find((p) => p._id === selectedProductId);
 
   // Reset size quantities when category changes
   useEffect(() => {
@@ -323,15 +158,18 @@ const AddStock = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await axios.get("/api/stock/inventory");
-        setProducts(response.data);
+        const response = await axios.get("/api/stock/inventory",{ params: { category: selectedCategory
+        }});
+        console.log(response.data);
+        
+        setProducts(response.data.products);
       } catch (error: any) {
         console.error("Failed to fetch products:", error.message);
-        toast.error("Product already exists.");
+        toast.error(error.message);
       }
     };
     fetchProducts();
-  }, []);
+  }, [selectedCategory]);
 
   // --- HANDLERS ---
   const handleProductChange = (productId: string) => {
@@ -381,8 +219,6 @@ const AddStock = () => {
     const payload = {
       productId: selectedProductId,
       category: selectedCategory,
-      receivedDate: date,
-      notes: notes,
       stockEntries,
     };
 
@@ -394,7 +230,6 @@ const AddStock = () => {
       // Reset form on successful submission
       setSelectedProductId("");
       setDate(new Date().toISOString().split("T")[0]);
-      setNotes("");
       // Reset size quantities
       const newQuantities: { [size: string]: string } = {};
       (SIZE_SETS[selectedCategory] || []).forEach((size) => {
@@ -456,7 +291,7 @@ const AddStock = () => {
                 </option>
                 {products.map((p) => (
                   <option key={p._id} value={p._id}>
-                    {p.name} ({p.sku})
+                    {p.name}
                   </option>
                 ))}
               </select>

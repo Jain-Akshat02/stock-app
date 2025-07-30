@@ -4,13 +4,14 @@ import Stock from "@/models/stockModel";
 import { NextRequest, NextResponse } from "next/server";
 connect();
 
+
 export const GET = async (req: NextRequest) => {
   await connect();
   try {
-    const body = await req.json();
-    const { category } = body;
+    const {searchParams} = new URL(req.url);
+    const selectedCategory = searchParams.get("category");
 
-    const products = await Product.find({ category });
+    const products = await Product.find({ category: selectedCategory });
     if (!products) {
       return NextResponse.json({ message: "Empty category" });
     }
