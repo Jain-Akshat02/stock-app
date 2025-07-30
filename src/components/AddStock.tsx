@@ -54,7 +54,7 @@ const NewProductModal = ({
       toast.success("Product created successfully! 🎉");
       onClose(); // Close modal on success
     } catch (error: any) {
-      console.error("Failed to create product:", error);
+      console.log("Failed to create product:", error);
       const message =
         error.response?.data?.message || "Could not save the product.";
       toast.error(message);
@@ -202,7 +202,7 @@ const AddStock = () => {
   // Handles submitting the final stock information
   const handleSubmitStock = async () => {
     if (!selectedProductId || !date) {
-      return toast.error("Please select a product and a received date.");
+      return toast.error("Please select a product.");
     }
 
     const stockEntries = Object.entries(sizeQuantities)
@@ -229,7 +229,6 @@ const AddStock = () => {
       router.refresh();
       // Reset form on successful submission
       setSelectedProductId("");
-      setDate(new Date().toISOString().split("T")[0]);
       // Reset size quantities
       const newQuantities: { [size: string]: string } = {};
       (SIZE_SETS[selectedCategory] || []).forEach((size) => {
@@ -238,6 +237,7 @@ const AddStock = () => {
       setSizeQuantities(newQuantities);
     } catch (error: any) {
       console.error(error.message);
+      toast.error(error.message);
       const message = error.response?.data?.message || "Failed to add stock.";
       toast.error(message);
     } finally {
@@ -320,13 +320,14 @@ const AddStock = () => {
                       </th>
                     </tr>
                   </thead>
-                  <div className="flex gap-4 m-3">
+                  <tbody className="flex gap-4 m-3">
                     {(SIZE_SETS[selectedCategory] || []).map((size) => (
-                      <div key={size} className="flex flex-col items-center">
-                        <span className="mb-1 font-semibold text-gray-800">
+                      <tr key={size} className="flex flex-col items-center">
+                        <td className="mb-1 font-semibold text-gray-800">
                           {size}
-                        </span>
-                        <input
+                        </td>
+                        <td>
+                          <input
                           ref={(el) => {
                             inputRefs.current[size] = el;
                           }}
@@ -343,9 +344,10 @@ const AddStock = () => {
                           }
                           onKeyPress={(e) => handleKeyPress(e, size)}
                         />
-                      </div>
+                        </td>
+                      </tr>
                     ))}
-                  </div>
+                  </tbody>
                 </table>
               </div>
             </div>

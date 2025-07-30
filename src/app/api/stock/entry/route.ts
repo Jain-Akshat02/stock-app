@@ -7,19 +7,17 @@ connect();
 
 export const POST = async (req: NextRequest) => {
   const reqBody = await req.json();
-  const { productId, receivedDate, notes, stockEntries, sale } = reqBody;
+  const { productId, stockEntries,sale} = reqBody;
   console.log("reqBody", reqBody);
   if (sale) {
     // Sale mode: expects productId, size, mrp, quantity, notes
-    const { size, mrp, quantity } = sale;
-    if (!productId || !size || !mrp || !quantity) {
+    const { size, quantity } = sale;
+    if (!productId || quantity == null) {
       return NextResponse.json({ message: "Missing required fields for sale" }, { status: 400 });
     }
     // Aggregate current stock for this product/variant
     const stockEntries = await Stock.find({
       product: productId,
-      "variants.size": size,
-      "variants.mrp": mrp,
     });
     const currentStock = stockEntries.reduce((sum: number, entry: any) => sum + entry.quantity, 0);
     if (currentStock < quantity) {
@@ -28,10 +26,7 @@ export const POST = async (req: NextRequest) => {
     // Record the sale as a negative stock entry
     await Stock.create({
       product: productId,
-      variants: [{ size, mrp }],
       quantity: -quantity,
-      date: receivedDate || new Date(),
-      notes: notes || "Sale recorded",
       status: "stock out",
     });
     // Also update Product's variant quantity
@@ -39,7 +34,6 @@ export const POST = async (req: NextRequest) => {
       {
         _id: productId,
         "variants.size": size,
-        "variants.mrp": mrp,
       },
       { $inc: { "variants.$.quantity": -quantity } }
     );
@@ -48,7 +42,6 @@ export const POST = async (req: NextRequest) => {
 
   if (
     !productId ||
-    !receivedDate ||
     !stockEntries ||
     stockEntries.length === 0
   ) {
@@ -62,24 +55,21 @@ export const POST = async (req: NextRequest) => {
       // 1. Create a Stock document (history)
       await Stock.create({
         product: productId,
-        variants: [{ size: entry.size, mrp: entry.mrp }], // <-- wrap in array!
-        quantity: entry.quantity,
-        date: receivedDate,
-        notes,
+        variants: [{ size: entry.size, quantity: entry.quantity}],
         status: "stock in",
       });
+      
       // 2. Update the Product's variant quantity
       await Product.updateOne(
         {
           _id: productId,
           "variants.size": entry.size,
-          "variants.mrp": entry.mrp,
         },
         { $inc: { "variants.$.quantity": entry.quantity } }
       );
     }
   } catch (error: any) {
-    console.error("Error adding stock:", error.message);
+    console.log(error, error.message);
     return NextResponse.json(
       { message: error.message, error: error },
       { status: 500 }
