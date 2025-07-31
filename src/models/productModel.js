@@ -15,12 +15,8 @@ const productSchema = mongoose.Schema({
             size: { type: String, required: true },
             quantity: { type: Number, required: true, default: 0 },
         }
-    ],
-    dateAdded: {
-        type: Date,
-        default: Date.now
-    },
-})
+    ]
+});
 
 const Product = mongoose.model('Product', productSchema)
 export default Product

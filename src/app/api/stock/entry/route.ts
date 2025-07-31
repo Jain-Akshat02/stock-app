@@ -8,35 +8,42 @@ connect();
 export const POST = async (req: NextRequest) => {
   const reqBody = await req.json();
   const { productId, stockEntries,sale} = reqBody;
-  console.log("reqBody", reqBody);
+  console.log("---reqBody---", reqBody);
   if (sale) {
     // Sale mode: expects productId, size, mrp, quantity, notes
-    const { size, quantity } = sale;
-    if (!productId || quantity == null) {
-      return NextResponse.json({ message: "Missing required fields for sale" }, { status: 400 });
+    console.log("---Sale mode---");
+    
+    for (const saleEntry of sale) {
+      const { size, quantity } = saleEntry;
+      if (!productId || quantity == null) {
+        
+        return NextResponse.json({ message: "...." }, { status: 400 });
+      }
+      // Aggregate current stock for this product/variant
+      const stockEntries = await Stock.find({
+        product: productId,
+      });
+      console.log("--helllo bhiya---");
+      console.log(productId, stockEntries);
+      const currentStock = stockEntries.reduce((sum: number, entry: any) => sum + entry.quantity, 0);
+      if (currentStock < quantity) {
+        return NextResponse.json({ message: "Not enough stock!" }, { status: 400 });
+      }
+      // Record the sale as a negative stock entry
+      await Stock.create({
+        product: productId,
+        quantity: -quantity,
+        status: "stock out",
+      });
+      // Also update Product's variant quantity
+      await Product.updateOne(
+        {
+          _id: productId,
+          "variants.size": size,
+        },
+        { $inc: { "variants.$.quantity": -quantity } }
+      );
     }
-    // Aggregate current stock for this product/variant
-    const stockEntries = await Stock.find({
-      product: productId,
-    });
-    const currentStock = stockEntries.reduce((sum: number, entry: any) => sum + entry.quantity, 0);
-    if (currentStock < quantity) {
-      return NextResponse.json({ message: "Not enough stock!" }, { status: 400 });
-    }
-    // Record the sale as a negative stock entry
-    await Stock.create({
-      product: productId,
-      quantity: -quantity,
-      status: "stock out",
-    });
-    // Also update Product's variant quantity
-    await Product.updateOne(
-      {
-        _id: productId,
-        "variants.size": size,
-      },
-      { $inc: { "variants.$.quantity": -quantity } }
-    );
     return NextResponse.json({ message: "Sale recorded successfully" }, { status: 201 });
   }
 

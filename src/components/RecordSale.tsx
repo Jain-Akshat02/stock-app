@@ -24,6 +24,19 @@ const RecordSale = () => {
   const router = useRouter();
   const inputRefs = useRef<{ [size: string]: HTMLInputElement | null }>({});
 
+  const selectedProduct = products.find((p) => p._id === selectProductId);
+
+  const recordSaleBtnRef = useRef<HTMLButtonElement>(null);
+
+  // Create a ref callback for input elements
+  const createInputRef = (size: string) => (el: HTMLInputElement | null) => {
+    if (el) {
+      inputRefs.current[size] = el;
+    } else {
+      delete inputRefs.current[size];
+    }
+  };
+
   // Reset size quantities when category changes
   useEffect(() => {
     const newQuantities: { [size: string]: string } = {};
@@ -66,10 +79,19 @@ const RecordSale = () => {
 
       if (nextSize && inputRefs.current[nextSize]) {
         inputRefs.current[nextSize]?.focus();
+        console.log("--click detected--");
+        
       }
+      else if(recordSaleBtnRef.current){
+        console.log("click detected");
+        
+        recordSaleBtnRef.current?.focus();
+
+      }
+
     }
   };
-
+  
   // Handles submitting the final sale information
   const handleSubmitSale = async () => {
     const saleEntries = Object.entries(sizeQuantities)
@@ -88,13 +110,13 @@ const RecordSale = () => {
     try {
       // Send all sale entries in one payload
       const payload = {
+        productId: selectProductId,
         category: selectedCategory,
         sale:saleEntries
       };
       await axios.post("/api/stock/entry", payload);
       toast.success("Sale recorded successfully!");
       router.refresh();
-      // Reset form
       setSelectedCategory("Bras");
     } catch (error: any) {
       console.error("Sale submission failed:", error);
@@ -155,24 +177,21 @@ const RecordSale = () => {
         </div>
         {/* --- Step 2: Enter Sale Quantities --- */}
         <div>
+          
           <label className="block text-sm font-semibold text-gray-700 mb-2">
             2. Enter Sale Quantities
           </label>
           <div className="flex gap-4 flex-wrap">
-            {(SIZE_SETS[selectedCategory] || []).map((size) => (
+            {selectedProduct && (
+            <div className="mb-4 text-lg font-semibold text-pink-700">
+              {selectedProduct.name.toUpperCase()}
+            </div>
+          )}
+            {selectedProduct &&(SIZE_SETS[selectedCategory] || []).map((size) => (
               <div key={size} className="flex flex-col items-center">
                 <span className="mb-1 font-semibold text-gray-800">{size}</span>
                 <input
-                  ref={useCallback(
-                    (el: HTMLInputElement | null) => {
-                      if (el) {
-                        inputRefs.current[size] = el;
-                      } else {
-                        delete inputRefs.current[size];
-                      }
-                    },
-                    [size]
-                  )}
+                  ref={createInputRef(size)}
                   type="number"
                   min="0"
                   className="w-20 px-2 py-1 border rounded text-center text-gray-800"
@@ -202,9 +221,10 @@ const RecordSale = () => {
             Cancel
           </button>
           <button
+            ref={recordSaleBtnRef}
             onClick={handleSubmitSale}
             disabled={isLoading}
-            className="flex items-center justify-center gap-2 text-white bg-pink-600 px-5 py-2.5 rounded-lg hover:bg-pink-700 transition-all font-semibold shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
+            className="flex items-center justify-center gap-2 text-white bg-pink-600 px-5 py-2.5 rounded-lg hover:bg-pink-700 transition-all font-semibold shadow-sm disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
           >
             {isLoading ? (
               "Recording..."
