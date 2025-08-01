@@ -2,47 +2,28 @@
 import { NextResponse } from 'next/server';
 import connect from '@/config/dbConfig';
 import Stock from '@/models/stockModel';
+import Product from '@/models/productModel'
 
 
 connect();
 
 export async function GET() {
-  const stockEntries = await Stock.find({});
-  const totalStock = stockEntries.reduce((sum: number, entry: any) => sum + (entry.quantity > 0 ? entry.quantity : 0), 0);
-  const totalSalesValue = stockEntries.reduce((sum: number, entry: any) =>  {
-    if(entry.quantity <0 && entry.variants && entry.variants[0]?.mrp){
-      return sum + (-entry.quantity)* entry.variants[0].mrp;
-    }
-    return sum;
-  }, 0
-  );
-  const lowStockCount = stockEntries.filter((entry: any) => entry.quantity <= 5).length;
-  const totalStockValue = stockEntries.reduce((sum: number, entry: any) => {
-    if(entry.quantity>0 && entry.variants && entry.variants[0]?.mrp){
-      return sum + entry.quantity * entry.variants[0].mrp;
-    }
-    return sum;
-  }, 0);
-  return NextResponse.json({
-    totalStock,
-    totalSalesValue,
-    lowStockCount,
-    totalStockValue
-  }, {
-    status: 200
-  });
+  try {
+    console.log("Fetching total products count");
+    
+    const totalProducts = await Product.countDocuments();
+    return NextResponse.json({ totalProducts}, { status: 200});
+  } catch (error: any) {
+    return NextResponse.json({ message: error.message, error }, { status: 500 });
+    
+  }
 }
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { sku, quantity } = body;
-
     // In a real application, you would:
-    // 1. Validate the input (e.g., check if SKU exists, quantity is a number).
-    // 2. Update the stock count for the given SKU in your database.
-    console.log(`Received stock update: Add ${quantity} to SKU ${sku}`);
 
-    return NextResponse.json({ message: "Stock added successfully", sku, quantity }, { status: 201 });
+    return NextResponse.json({ message: "Stock added successfully"}, { status: 201 });
   } catch (error: any) {
     return NextResponse.json({ message: error.message, error }, { status: 500 });
   }

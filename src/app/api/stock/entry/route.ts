@@ -91,7 +91,7 @@ export const GET = async () => {
       .populate({
         path: "product",
         select:
-          "name category sku variants"
+          "name category variants"
         ,
       })
       .sort({ date: -1 });

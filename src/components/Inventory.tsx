@@ -23,13 +23,14 @@ import axios from "axios";
 const getStockStatus = (stock: number) => {
   if (stock === 0)
     return { text: "Out of Stock", color: "bg-red-100 text-red-800", icon: AlertTriangle };
-  if (stock < 5)
+  if (stock <= 5)
     return { text: "Low Stock", color: "bg-yellow-100 text-yellow-800", icon: AlertTriangle };
   return { text: "In Stock", color: "bg-green-100 text-green-800", icon: CheckCircle };
 };
-
-const DEFAULT_SIZES = ["S", "M", "L", "XL", "XXL"];
-
+const SIZE_SETS: Record<string, string[]> = {
+    Bras: ["28", "30", "32", "34", "36", "38", "40", "42", "44"],
+    Panties: ["S", "M", "L", "XL", "XXL", "3XL", "4XL"],
+  };
 const Inventory = () => {
   const [products, setProducts] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -38,21 +39,12 @@ const Inventory = () => {
   const [stockStatus, setStockStatus] = useState("Current Status");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedProductId, setSelectedProductId] = useState("All Products");
+  const [totalProducts, setTotalProducts] = useState(0);
   
   const [newProduct, setNewProduct] = useState({
     name: "",
-    sku: "",
     category: "Bras",
-    variants: DEFAULT_SIZES.map((size) => ({ size, mrp: "", quantity: "" })),
   });
-
-  const handleVariantChange = (idx: number, field: string, value: string) => {
-    setNewProduct((prev) => {
-      const variants = [...prev.variants];
-      variants[idx] = { ...variants[idx], [field]: value };
-      return { ...prev, variants };
-    });
-  };
 
   const handleSaveProduct = async () => {
     if (!newProduct.name || !newProduct.category) {
@@ -62,28 +54,10 @@ const Inventory = () => {
     try {
       await axios.post("/api/stock/inventory", {
         name: newProduct.name,
-        sku: newProduct.sku,
         category: newProduct.category,
-        variants: newProduct.variants
-          .filter((v) => v.quantity !== "" && !isNaN(Number(v.quantity)))
-          .map((v) => ({
-            size: v.size,
-            mrp: Number(v.mrp),
-            quantity: Number(v.quantity),
-          })),
       });
       toast.success("Product added!");
       setIsModalOpen(false);
-      setNewProduct({
-        name: "",
-        sku: "",
-        category: "Bras",
-        variants: DEFAULT_SIZES.map((size) => ({
-          size,
-          mrp: "",
-          quantity: "",
-        })),
-      });
     } catch (error) {
       toast.error("Failed to add product");
     }
@@ -128,11 +102,20 @@ const Inventory = () => {
   });
 
   // Calculate summary statistics
-  const totalProducts = filteredProducts.length;
   const totalStock = filteredProducts.reduce((sum: number, entry: any) => sum + entry.quantity, 0);
   const lowStockItems = filteredProducts.filter((entry: any) => entry.quantity < 5).length;
   const outOfStockItems = filteredProducts.filter((entry: any) => entry.quantity === 0).length;
-
+  useEffect(() => {
+    const totalProducts = async () => {
+      try {
+        const response = await axios.get("/api/stock/dashboard");
+        setTotalProducts(response.data.totalProducts);
+      } catch (error) {
+        return console.log("Error fetching total products:", error);
+      }
+    }
+    totalProducts();
+  },[]);
   useEffect(() => {
     const fetchStockData = async () => {
       try {
@@ -346,9 +329,6 @@ const Inventory = () => {
                             <div className="text-sm font-medium text-gray-900">
                               {entry.product?.name || "Unknown Product"}
                             </div>
-                            <div className="text-sm text-gray-500">
-                              SKU: {entry.product?.sku || "N/A"}
-                            </div>
                           </div>
                         </div>
                       </td>
@@ -433,15 +413,7 @@ const Inventory = () => {
                     setNewProduct((p) => ({ ...p, name: e.target.value }))
                   }
                 />
-                <input
-                  type="text"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="SKU (optional)"
-                  value={newProduct.sku}
-                  onChange={(e) =>
-                    setNewProduct((p) => ({ ...p, sku: e.target.value }))
-                  }
-                />
+                
                 <select
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
                   value={newProduct.category}

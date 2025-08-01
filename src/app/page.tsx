@@ -1,14 +1,14 @@
 // src/app/page.tsx
 import ClientLayout from "@/components/ClientLayout";
-import Dashboard from "@/components/Dashboard";
+import Inventory from "@/components/Inventory";
 import type { NextPage } from 'next';
 
 const Home: NextPage = () => {
   return (
     <ClientLayout>
-      <Dashboard />
+      <Inventory />
     </ClientLayout>
   );
 }
-
 export default Home;
+

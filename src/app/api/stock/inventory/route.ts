@@ -62,7 +62,7 @@ export const PATCH = async (req: Request) => {
   await connect();
   try {
     const body = await req.json();
-    const { _id, name, category, sku, variants } = body;
+    const { _id, name, category, variants } = body;
     if (!_id) {
       return new Response(JSON.stringify({ message: "Missing product id" }), {
         status: 400,
@@ -81,7 +81,7 @@ export const PATCH = async (req: Request) => {
     }
     const updated = await Product.findByIdAndUpdate(
       _id,
-      { name, category, sku, variants },
+      { name, category, variants },
       { new: true }
     );
     if (!updated) {
