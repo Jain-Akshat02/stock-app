@@ -212,8 +212,8 @@ const AddStock = () => {
   };
 
   const handleAddNewProduct = (newProduct: any) => {
-    setProducts((prev) => prev.concat(newProduct));
-    handleProductChange(newProduct.id);
+    setProducts((prev) => prev.concat(newProduct.product));
+    handleProductChange(newProduct.product._id);
   };
 
   const handleSubmitStock = async () => {
