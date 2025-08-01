@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { ShoppingCart, X } from "lucide-react";
+import { ShoppingCart, X, ArrowLeft, Package, TrendingDown } from "lucide-react";
 import toast from "react-hot-toast";
 import axios from "axios";
 import { useRouter } from "next/navigation";
@@ -62,6 +62,7 @@ const RecordSale = () => {
     }
     fetchProducts();
   },[selectedCategory]);
+  
   const handleProductChange = (selectProduct: string) => {
     setSelectProductId(selectProduct);
   }
@@ -114,6 +115,7 @@ const RecordSale = () => {
         category: selectedCategory,
         sale:saleEntries
       };
+      console.log(payload);
       await axios.post("/api/stock/entry", payload);
       toast.success("Sale recorded successfully!");
       router.refresh();
@@ -128,115 +130,213 @@ const RecordSale = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-4 md:p-8 font-sans">
-      <button
-        className="absolute top-35 right-70 text-gray-400 hover:text-pink-600 transition"
-        onClick={() => router.back()}
-        aria-label="Close"
-      >
-        <X size={28} />
-      </button>
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-white">Record a Sale</h1>
-        <p className="text-gray-600 mt-1">
-          Log a new sale to update inventory levels.
-        </p>
-      </div>
-      <div className="bg-white p-6 md:p-8 rounded-xl shadow-lg space-y-8 border border-gray-100">
-        {/* --- Step 1: Category Selection --- */}
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
-            1. Select Category
-          </label>
-          <select
-            className="bg-white border border-gray-300 text-gray-700 text-sm rounded-lg focus:ring-pink-500 focus:border-pink-500 block p-2"
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-          >
-            <option>Select Category</option>
-            <option>Bras</option>
-            <option>Panties</option>
-          </select>
-          <label className="block text-sm font-semibold text-gray-700 mb-2 mt-2">
-            2. Select Quality
-          </label>
-          <select
-                className="block w-full px-4 py-2.5 rounded-lg border border-gray-300 bg-white text-gray-800 transition focus:outline-none focus:ring-2 focus:ring-pink-400 flex-grow"
-                value={selectProductId}
-                onChange={(e) => handleProductChange(e.target.value)}
+    <div className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50">
+      {/* Header */}
+      <div className="bg-white shadow-sm border-b border-gray-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={() => router.back()}
+                className="flex items-center text-gray-600 hover:text-pink-600 transition-colors"
               >
-                <option value="" disabled>
-                 Select Quality
-                </option>
-                {products.map((p) => (
-                  <option key={p._id} value={p._id}>
-                    {p.name}
-                  </option>
-                ))}
-              </select>
-        </div>
-        {/* --- Step 2: Enter Sale Quantities --- */}
-        <div>
-          
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
-            2. Enter Sale Quantities
-          </label>
-          <div className="flex gap-4 flex-wrap">
-            {selectedProduct && (
-            <div className="mb-4 text-lg font-semibold text-pink-700">
-              {selectedProduct.name.toUpperCase()}
-            </div>
-          )}
-            {selectedProduct &&(SIZE_SETS[selectedCategory] || []).map((size) => (
-              <div key={size} className="flex flex-col items-center">
-                <span className="mb-1 font-semibold text-gray-800">{size}</span>
-                <input
-                  ref={createInputRef(size)}
-                  type="number"
-                  min="0"
-                  className="w-20 px-2 py-1 border rounded text-center text-gray-800"
-                  placeholder="Qty"
-                  value={sizeQuantities[size] || ""}
-                  onChange={ (e) =>
-                    setSizeQuantities((q) => ({
-                      ...q,
-                      [size]: e.target.value,
-                    }))
-                  }
-                  onKeyPress={(e) => handleKeyPress(e, size)}
-                />
+                <ArrowLeft size={20} className="mr-2" />
+                Back
+              </button>
+              <div className="h-6 w-px bg-gray-300"></div>
+              <div>
+                <h1 className="text-xl font-semibold text-gray-900">Record Sale</h1>
+                <p className="text-sm text-gray-500">Update inventory levels</p>
               </div>
-            ))}
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className="flex items-center px-3 py-1 bg-pink-100 text-pink-800 rounded-full text-sm font-medium">
+                <TrendingDown size={16} className="mr-1" />
+                Sale Mode
+              </div>
+            </div>
           </div>
         </div>
-        {/* --- Final Actions --- */}
-        <div className="flex justify-end gap-3 pt-4 border-t">
-          <button
-            className="px-5 py-2.5 rounded-lg text-gray-700 bg-gray-100 hover:bg-gray-200 font-semibold transition-all"
-            onClick={() => {
-              setSelectedCategory("Bras");
-              setSizeQuantities({});
-            }}
-          >
-            Cancel
-          </button>
-          <button
-            ref={recordSaleBtnRef}
-            onClick={handleSubmitSale}
-            disabled={isLoading}
-            className="flex items-center justify-center gap-2 text-white bg-pink-600 px-5 py-2.5 rounded-lg hover:bg-pink-700 transition-all font-semibold shadow-sm disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
-          >
-            {isLoading ? (
-              "Recording..."
-            ) : (
-              <>
-                <ShoppingCart size={20} />
-                Record Sale
-              </>
+      </div>
+
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+          {/* Product Selection Section */}
+          <div className="bg-gradient-to-r from-pink-500 to-purple-600 px-8 py-6">
+            <div className="flex items-center space-x-4">
+              <div className="p-3 bg-white/20 rounded-xl">
+                <Package size={24} className="text-white" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-white">Product Selection</h2>
+                <p className="text-pink-100">Choose category and product quality</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="p-8 space-y-8">
+            {/* Category and Product Selection */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-3">
+                  Category
+                </label>
+                <select
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all"
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                >
+                  <option value="Bras">Bras</option>
+                  <option value="Panties">Panties</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-3">
+                  Product Quality
+                </label>
+                <select
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all"
+                  value={selectProductId}
+                  onChange={(e) => handleProductChange(e.target.value)}
+                >
+                  <option value="" >
+                    Select Quality
+                  </option>
+                  {products.map((p) => (
+                    <option key={p._id} value={p._id}>
+                      {p.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Selected Product Display */}
+            {selectedProduct && (
+              <div className="bg-gradient-to-r from-gray-50 to-pink-50 rounded-xl p-6 border border-gray-200">
+                <div className="flex items-center space-x-4">
+                  <div className="p-3 bg-pink-100 rounded-xl">
+                    <Package size={20} className="text-pink-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      {selectedProduct.name}
+                    </h3>
+                    <p className="text-sm text-gray-600">
+                      Category: {selectedProduct.category}
+                    </p>
+                  </div>
+                </div>
+              </div>
             )}
-          </button>
+
+            {/* Size Quantities Section */}
+            {selectedProduct && (
+              <div className="space-y-6">
+                <div className="flex items-center space-x-4">
+                  <div className="p-2 bg-blue-100 rounded-lg">
+                    <ShoppingCart size={20} className="text-blue-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      Enter Sale Quantities
+                    </h3>
+                    <p className="text-sm text-gray-600">
+                      Select quantities for each available size
+                    </p>
+                  </div>
+                </div>
+
+                {/* Sizes Container with Horizontal Scroll */}
+                <div className="bg-gray-50 rounded-xl p-6">
+                  <div className="flex space-x-4 overflow-x-auto pb-4 scrollbar-hide max-w-full">
+                    {(SIZE_SETS[selectedCategory] || []).map((size) => {
+                      // Find the variant for this size
+                      const variant = selectedProduct.variants.find((v: any) => v.size === size);
+                      const availableQuantity = variant ? variant.quantity : 0;
+                      
+                      return (
+                        <div key={size} className="flex-shrink-0 min-w-0">
+                          <div className="bg-white rounded-xl p-3 border border-gray-200 shadow-sm hover:shadow-md transition-shadow w-20">
+                            <div className="text-center space-y-2">
+                              <div>
+                                <span className="text-base font-bold text-gray-900">{size}</span>
+                                <div className="text-xs text-gray-500 mt-1">
+                                  Available: {availableQuantity}
+                                </div>
+                              </div>
+                              <input
+                                ref={createInputRef(size)}
+                                type="number"
+                                min="0"
+                                max={availableQuantity}
+                                className="w-full px-1 py-1 border border-gray-300 rounded-lg text-center text-gray-800 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent text-xs"
+                                placeholder="0"
+                                value={sizeQuantities[size] || ""}
+                                onChange={(e) =>
+                                  setSizeQuantities((q) => ({
+                                    ...q,
+                                    [size]: e.target.value,
+                                  }))
+                                }
+                                onKeyPress={(e) => handleKeyPress(e, size)}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+              <button
+                className="px-6 py-3 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl font-semibold transition-all"
+                onClick={() => {
+                  setSelectedCategory("Bras");
+                  setSizeQuantities({});
+                  setSelectProductId("");
+                }}
+              >
+                Reset
+              </button>
+              <button
+                ref={recordSaleBtnRef}
+                onClick={handleSubmitSale}
+                disabled={isLoading || !selectedProduct}
+                className="flex items-center space-x-2 px-8 py-3 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-xl font-semibold hover:from-pink-600 hover:to-purple-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+              >
+                {isLoading ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <span>Recording...</span>
+                  </>
+                ) : (
+                  <>
+                    <ShoppingCart size={20} />
+                    <span>Record Sale</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
+
+      <style jsx>{`
+        .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+      `}</style>
     </div>
   );
 };

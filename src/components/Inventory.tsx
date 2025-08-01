@@ -2,17 +2,30 @@
 import React from "react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Search, Edit, Trash2, X } from "lucide-react";
+import { 
+  Plus, 
+  Search, 
+  Edit, 
+  Trash2, 
+  X, 
+  Minus, 
+  Package, 
+  TrendingUp, 
+  AlertTriangle, 
+  CheckCircle, 
+  Filter,
+  BarChart3,
+  Calendar,
+} from "lucide-react";
 import toast from "react-hot-toast";
 import axios from "axios";
 
-
 const getStockStatus = (stock: number) => {
   if (stock === 0)
-    return { text: "Out of Stock", color: "bg-red-100 text-red-800" };
+    return { text: "Out of Stock", color: "bg-red-100 text-red-800", icon: AlertTriangle };
   if (stock < 5)
-    return { text: "Low Stock", color: "bg-yellow-100 text-yellow-800" };
-  return { text: "In Stock", color: "bg-green-100 text-green-800" };
+    return { text: "Low Stock", color: "bg-yellow-100 text-yellow-800", icon: AlertTriangle };
+  return { text: "In Stock", color: "bg-green-100 text-green-800", icon: CheckCircle };
 };
 
 const DEFAULT_SIZES = ["S", "M", "L", "XL", "XXL"];
@@ -41,23 +54,7 @@ const Inventory = () => {
     });
   };
 
-  const handleAddVariant = () => {
-    setNewProduct((prev) => ({
-      ...prev,
-      variants: [...prev.variants, { size: "", mrp: "", quantity: "" }],
-    }));
-  };
-
-  const handleRemoveVariant = (idx: number) => {
-    if (idx < DEFAULT_SIZES.length) return; // Don't remove default sizes
-    setNewProduct((prev) => {
-      const variants = prev.variants.filter((_, i) => i !== idx);
-      return { ...prev, variants };
-    });
-  };
-
   const handleSaveProduct = async () => {
-    // Validate required fields
     if (!newProduct.name || !newProduct.category) {
       toast.error("Name and category are required");
       return;
@@ -87,17 +84,17 @@ const Inventory = () => {
           quantity: "",
         })),
       });
-      // Optionally refresh inventory
     } catch (error) {
       toast.error("Failed to add product");
     }
   };
 
   const router = useRouter();
+  
   function aggregateStock(entries: any) {
     const map = new Map();
     for (const entry of entries) {
-      const key = `${entry.product?._id}-${entry.variants?.[0].size}-${entry.variants?.[0].mrp}`;
+      const key = `${entry.product?._id}`;
       if (!map.has(key)) {
         map.set(key, {
           ...entry,
@@ -108,18 +105,17 @@ const Inventory = () => {
     }
     return Array.from(map.values());
   }
+  
   const aggregatedProducts = aggregateStock(products);
   const filteredProducts = aggregatedProducts.filter((entry: any) => {
     const matchesCategory =
       selectedCategory === "All Categories" ||
       entry.product?.category === selectedCategory;
 
-    // Since each row only has one variant after aggregation:
     const matchesSize =
       selectedSize === "All Sizes" ||
       entry.variants?.[0]?.size === selectedSize;
 
-    // Use entry.quantity directly for status:
     const matchesStatus =
       stockStatus === "Current Status" ||
       getStockStatus(entry.quantity).text === stockStatus;
@@ -130,6 +126,12 @@ const Inventory = () => {
 
     return matchesCategory && matchesSize && matchesStatus && matchSearch;
   });
+
+  // Calculate summary statistics
+  const totalProducts = filteredProducts.length;
+  const totalStock = filteredProducts.reduce((sum: number, entry: any) => sum + entry.quantity, 0);
+  const lowStockItems = filteredProducts.filter((entry: any) => entry.quantity < 5).length;
+  const outOfStockItems = filteredProducts.filter((entry: any) => entry.quantity === 0).length;
 
   useEffect(() => {
     const fetchStockData = async () => {
@@ -149,188 +151,282 @@ const Inventory = () => {
   }, []);
 
   return (
-    <div className="space-y-6">
-      {/* Header Section */}
-      <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-        <h1 className="text-3xl font-bold text-gray-800">Inventory</h1>
-        <div className="flex items-center gap-2">
-          <div className="relative">
-            <Search
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-              size={20}
-            />
-            <input
-              type="text"
-              placeholder="Search products..."
-              className="bg-white w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-300 text-gray-800"
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-              }}
-            />
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+      {/* Header */}
+      <div className="bg-white shadow-sm border-b border-gray-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center space-x-4">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <Package size={24} className="text-blue-600" />
+              </div>
+              <div>
+                <h1 className="text-xl font-semibold text-gray-900">Inventory Management</h1>
+                <p className="text-sm text-gray-500">Track and manage your stock levels</p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-3">
+              <button
+                onClick={() => router.push("/add-stock")}
+                className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all font-medium"
+              >
+                <Plus size={18} />
+                <span>Add Stock</span>
+              </button>
+              <button
+                onClick={() => router.push("/record-sale")}
+                className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-pink-500 to-red-600 text-white rounded-xl hover:from-pink-600 hover:to-red-700 transition-all font-medium"
+              >
+                <Minus size={18} />
+                <span>Record Sale</span>
+              </button>
+            </div>
           </div>
-
-          <button
-            onClick={() => router.push("/add-stock")}
-            className="flex items-center gap-2 text-white bg-pink-500 px-4 py-2 rounded-lg hover:bg-pink-600 transition-colors"
-          >
-            <Plus size={20} />
-            Add Stock
-          </button>
         </div>
       </div>
 
-      {/* Filters Section */}
-      <div className="bg-white p-4 rounded-xl shadow-lg flex flex-wrap items-center gap-4 border border-gray-100">
-        <span className="font-semibold text-gray-800">Filter by:</span>
-        <select
-          className="bg-white border border-gray-300 text-gray-700 text-sm rounded-lg focus:ring-pink-500 focus:border-pink-500 block p-2"
-          value={selectedCategory}
-          onChange={(e) => setSelectedCategory(e.target.value)}
-        >
-          <option>Select Category</option>
-          <option>Bras</option>
-          <option>Panties</option>
-        </select>
-      </div>
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Statistics Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Total Products</p>
+                <p className="text-3xl font-bold text-gray-900">{totalProducts}</p>
+              </div>
+              <div className="p-3 bg-blue-100 rounded-xl">
+                <Package size={24} className="text-blue-600" />
+              </div>
+            </div>
+          </div>
 
-      {/* Inventory Table */}
-      {/* <div className="bg-white rounded-xl shadow-lg overflow-x-auto border border-gray-100 mt-4">
-        <table className="w-full text-sm text-left text-gray-700">
-          <thead className="text-xs font-bold text-gray-700 uppercase bg-gray-50">
-            <tr>
-              <th scope="col" className="px-6 py-3">
-                Product
-              </th>
-              <th scope="col" className="px-6 py-3">
-                SKU
-              </th>
-              <th scope="col" className="px-6 py-3">
-                Category
-              </th>
-              <th scope="col" className="px-6 py-3">
-                Size
-              </th>
-              <th scope="col" className="px-6 py-3">
-                MRP
-              </th>
-              <th scope="col" className="px-6 py-3 text-center">
-                Quantity
-              </th>
-              <th scope="col" className="px-6 py-3 text-center">
-                Status
-              </th>
-              <th scope="col" className="px-6 py-3 text-center">
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredProducts.map((entry: any) => (
-              <tr
-                key={entry._id}
-                className="bg-white border-b hover:bg-pink-50 transition-colors"
+          <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Total Stock</p>
+                <p className="text-3xl font-bold text-gray-900">{totalStock}</p>
+              </div>
+              <div className="p-3 bg-green-100 rounded-xl">
+                <TrendingUp size={24} className="text-green-600" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Low Stock</p>
+                <p className="text-3xl font-bold text-yellow-600">{lowStockItems}</p>
+              </div>
+              <div className="p-3 bg-yellow-100 rounded-xl">
+                <AlertTriangle size={24} className="text-yellow-600" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Out of Stock</p>
+                <p className="text-3xl font-bold text-red-600">{outOfStockItems}</p>
+              </div>
+              <div className="p-3 bg-red-100 rounded-xl">
+                <X size={24} className="text-red-600" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Filters and Search */}
+        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 mb-8">
+          <div className="flex flex-col lg:flex-row items-center justify-between space-y-4 lg:space-y-0 lg:space-x-6">
+            <div className="flex items-center space-x-4 flex-1">
+              <div className="relative flex-1 max-w-md">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                <input
+                  type="text"
+                  placeholder="Search products..."
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-800"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <Filter size={18} className="text-gray-500" />
+                <span className="text-sm font-medium text-gray-700">Filters:</span>
+              </div>
+              
+              <select
+                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700"
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
               >
-                <td className="px-6 py-4 font-semibold text-gray-900">
-                  {entry.product?.name}
-                </td>
-                <td className="px-6 py-4">{entry.product?.sku || "-"}</td>
-                <td className="px-6 py-4">{entry.product?.category}</td>
-                <td className="px-6 py-4">{entry.variants?.[0]?.size}</td>
-                <td className="px-6 py-4">₹{entry.variants?.[0]?.mrp}</td>
-                <td className="px-6 py-4 text-center font-bold text-gray-800">
-                  {Math.max(0, entry.quantity)}
-                </td>
-                <td className="px-6 py-4 text-center">
-                  <span
-                    className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                      getStockStatus(entry.quantity).color
-                    }`}
-                  >
-                    {getStockStatus(entry.quantity).text}
-                  </span>
-                </td>
-                <td className="px-6 py-4 text-center">
-                  <div className="flex justify-center gap-2">
-                    <button className="p-2 text-gray-500 hover:text-blue-600 hover:bg-gray-100 rounded-full">
-                      <Edit size={18} />
-                    </button>
-                    <button
-                      className="p-2 text-gray-500 hover:text-red-600 hover:bg-gray-100 rounded-full"
-                      onClick={async () => {
-                        if (
-                          window.confirm(
-                            "Are you sure you want to delete this stock entry?"
-                          )
-                        ) {
-                          try {
-                            await axios.delete(
-                              `/api/stock/inventory`,{
-                                data: {
-                                  _id: entry.product?._id,
-                                  removeVariant: { size: entry.variants?.[0].size, mrp: entry.variants?.[0].mrp }
-                                }
-                              }
-                            );
-                            toast.success("Stock entry deleted");
-                            // Refresh inventory
-                            const response = await axios.get(
-                              "/api/stock/entry"
-                            );
-                            setProducts(response.data);
+                <option value="All Categories">All Categories</option>
+                <option value="Bras">Bras</option>
+                <option value="Panties">Panties</option>
+              </select>
 
-                          } catch (error:any) {
-                            toast.error("Failed to delete stock entry");
-                            console.log(error.message,error);
-                            
-                          }
-                        }
-                      }}
-                    >
-                      <Trash2 size={18} />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div> */}
-      <select className="bg-white border border-gray-700 text-sm rounded-lg focus:ring-pi k-500 focus:border-pink-500 block p-2 text-gray-800"
-        value={selectedProductId}
-        onChange={(e) => {
-          setSelectedProductId(e.target.value);
-        }}
-      >
-        <option value="Quality">Quality</option>
-        {aggregatedProducts.map((entry:any) => (
-          <option key={entry._id} value={entry._id}>
-            {entry.product?.name}
-          </option>
-        ))
-        }
-      </select>
+              <select
+                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700"
+                value={selectedSize}
+                onChange={(e) => setSelectedSize(e.target.value)}
+              >
+                <option value="All Sizes">All Sizes</option>
+                <option value="S">S</option>
+                <option value="M">M</option>
+                <option value="L">L</option>
+                <option value="XL">XL</option>
+                <option value="XXL">XXL</option>
+              </select>
+
+              <select
+                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700"
+                value={stockStatus}
+                onChange={(e) => setStockStatus(e.target.value)}
+              >
+                <option value="Current Status">All Status</option>
+                <option value="In Stock">In Stock</option>
+                <option value="Low Stock">Low Stock</option>
+                <option value="Out of Stock">Out of Stock</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* Inventory Table */}
+        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <h2 className="text-lg font-semibold text-gray-900">Product Inventory</h2>
+            <p className="text-sm text-gray-600">Showing {filteredProducts.length} products</p>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Product
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Category
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Size
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Stock Level
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {filteredProducts.map((entry: any, index: number) => {
+                  const status = getStockStatus(entry.quantity);
+                  const StatusIcon = status.icon;
+                  
+                  return (
+                    <tr key={index} className="hover:bg-gray-50 transition-colors">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="flex-shrink-0 h-10 w-10">
+                            <div className="h-10 w-10 rounded-lg bg-gradient-to-r from-blue-400 to-purple-500 flex items-center justify-center">
+                              <Package size={20} className="text-white" />
+                            </div>
+                          </div>
+                          <div className="ml-4">
+                            <div className="text-sm font-medium text-gray-900">
+                              {entry.product?.name || "Unknown Product"}
+                            </div>
+                            <div className="text-sm text-gray-500">
+                              SKU: {entry.product?.sku || "N/A"}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                          {entry.product?.category || "Unknown"}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 max-w-xs overflow-hidden text-ellipsis">
+                        {entry.variants?.[0]?.size || "N/A"}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="text-sm font-medium text-gray-900">
+                            {entry.quantity || 0}
+                          </div>
+                          <div className="ml-2 w-16 bg-gray-200 rounded-full h-2">
+                            <div 
+                              className={`h-2 rounded-full ${
+                                entry.quantity === 0 ? 'bg-red-500' :
+                                entry.quantity < 5 ? 'bg-yellow-500' : 'bg-green-500'
+                              }`}
+                              style={{ width: `${Math.min((entry.quantity / 20) * 100, 100)}%` }}
+                            ></div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${status.color}`}>
+                          <StatusIcon size={12} className="mr-1" />
+                          {status.text}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <div className="flex items-center space-x-2">
+                          <button className="text-blue-600 hover:text-blue-900">
+                            <Edit size={16} />
+                          </button>
+                          <button className="text-red-600 hover:text-red-900">
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          {filteredProducts.length === 0 && (
+            <div className="text-center py-12">
+              <Package size={48} className="mx-auto text-gray-400 mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No products found</h3>
+              <p className="text-gray-500">Try adjusting your search or filters</p>
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* Add/Edit Product Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl">
-            <div className="flex justify-between items-center p-4 border-b">
-              <h2 className="text-xl font-bold text-gray-800">
-                Add New Product
-              </h2>
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center p-6 border-b border-gray-200">
+              <h2 className="text-xl font-bold text-gray-900">Add New Product</h2>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="p-2 rounded-full hover:bg-gray-200"
+                className="p-2 rounded-full hover:bg-gray-100 transition-colors"
               >
                 <X size={20} />
               </button>
             </div>
-            <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
-              <div className="space-y-3">
+            <div className="p-6 space-y-4">
+              <div className="space-y-4">
                 <input
                   type="text"
-                  className="w-full border rounded-lg px-3 py-2 mb-2"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Product Name*"
                   value={newProduct.name}
                   onChange={(e) =>
@@ -339,7 +435,7 @@ const Inventory = () => {
                 />
                 <input
                   type="text"
-                  className="w-full border rounded-lg px-3 py-2 mb-2"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="SKU (optional)"
                   value={newProduct.sku}
                   onChange={(e) =>
@@ -347,7 +443,7 @@ const Inventory = () => {
                   }
                 />
                 <select
-                  className="w-full border rounded-lg px-3 py-2 mb-2"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
                   value={newProduct.category}
                   onChange={(e) =>
                     setNewProduct((p) => ({ ...p, category: e.target.value }))
@@ -355,73 +451,18 @@ const Inventory = () => {
                 >
                   <option value="Bras">Bras</option>
                   <option value="Panties">Panties</option>
-                  <option value="Nightwear">Nightwear</option>
-                  <option value="Shapewear">Shapewear</option>
                 </select>
-                <div>
-                  <div className="font-semibold mb-2">
-                    Variants (Size, MRP, Quantity)
-                  </div>
-                  {newProduct.variants.map((v, idx) => (
-                    <div key={idx} className="flex gap-2 mb-2 items-center">
-                      <input
-                        type="text"
-                        className="border rounded-lg px-2 py-1 w-20"
-                        placeholder="Size"
-                        value={v.size}
-                        onChange={(e) =>
-                          handleVariantChange(idx, "size", e.target.value)
-                        }
-                        disabled={idx < DEFAULT_SIZES.length}
-                      />
-                      <input
-                        type="number"
-                        className="border rounded-lg px-2 py-1 w-24"
-                        placeholder="MRP"
-                        value={v.mrp}
-                        onChange={(e) =>
-                          handleVariantChange(idx, "mrp", e.target.value)
-                        }
-                      />
-                      <input
-                        type="number"
-                        className="border rounded-lg px-2 py-1 w-24"
-                        placeholder="Quantity"
-                        value={v.quantity}
-                        onChange={(e) =>
-                          handleVariantChange(idx, "quantity", e.target.value)
-                        }
-                      />
-                      {idx >= DEFAULT_SIZES.length && (
-                        <button
-                          className="text-red-500 hover:text-red-700"
-                          onClick={() => handleRemoveVariant(idx)}
-                          type="button"
-                        >
-                          Remove
-                        </button>
-                      )}
-                    </div>
-                  ))}
-                  <button
-                    className="mt-2 px-3 py-1 bg-pink-500 text-white rounded-lg hover:bg-pink-600"
-                    onClick={handleAddVariant}
-                    type="button"
-                  >
-                    + Add Variant
-                  </button>
-                </div>
               </div>
             </div>
-            <div className="flex justify-end items-center p-4 border-t gap-2">
+            <div className="flex justify-end items-center p-6 border-t border-gray-200 space-x-3">
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="text-gray-600 bg-white border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-50"
+                className="px-6 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
               >
                 Cancel
               </button>
               <button
-                className="text-white bg-pink-500 px-4 py-2 rounded-lg hover:bg-pink-600"
+                className="px-6 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all"
                 onClick={handleSaveProduct}
               >
                 Save Product
@@ -430,11 +471,6 @@ const Inventory = () => {
           </div>
         </div>
       )}
-      <style jsx>{`
-        .filter-select {
-          @apply bg-white border border-gray-300 text-gray-700 text-sm rounded-lg focus:ring-pink-500 focus:border-pink-500 block p-2;
-        }
-      `}</style>
     </div>
   );
 };

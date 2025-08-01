@@ -12,6 +12,10 @@ export const GET = async (req: NextRequest) => {
     const selectedCategory = searchParams.get("category");
 
     const products = await Product.find({ category: selectedCategory });
+    for( const availaleStock of products){
+      availaleStock.variants
+    }
+    
     if (!products) {
       return NextResponse.json({ message: "Empty category" });
     }

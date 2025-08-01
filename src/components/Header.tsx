@@ -1,7 +1,7 @@
 // src/components/Header.tsx
 "use client";
 import { useRouter } from 'next/navigation';
-import { Plus, Minus, Bell, ChevronDown } from 'lucide-react';
+import { Plus, Minus, Bell, ChevronDown,User } from 'lucide-react';
 
 const Header = () => {
   const router = useRouter();
@@ -23,12 +23,9 @@ const Header = () => {
         <button className="p-2 rounded-full hover:bg-gray-100">
           <Bell size={20} className="text-gray-600" />
         </button>
-        <div className="flex items-center space-x-2">
-          <img
-            src="https://placehold.co/40x40/FFC0CB/333333?text=U"
-            alt="User"
-            className="w-10 h-10 rounded-full"
-          />
+        <div className="flex items-center space-x-1">
+          
+          <User size={20} className="text-gray-500 cursor-pointer" />
           <ChevronDown size={20} className="text-gray-500 cursor-pointer" />
         </div>
       </div>
