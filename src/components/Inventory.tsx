@@ -291,31 +291,31 @@ const Inventory = () => {
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[200px]">
                         Product Name
                       </th>
-                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[60px]">
+                      <th className="px-6 py-3 text-center text-xl font-bold text-gray-700 uppercase tracking-wider min-w-[60px]">
                         28
                       </th>
-                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[60px]">
+                      <th className="px-6 py-3 text-center text-xl font-bold text-gray-700 uppercase tracking-wider min-w-[60px]">
                         30
                       </th>
-                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[60px]">
+                      <th className="px-6 py-3 text-center text-xl font-bold text-gray-700 uppercase tracking-wider min-w-[60px]">
                         32
                       </th>
-                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[60px]">
+                      <th className="px-6 py-3 text-center text-xl font-bold text-gray-700 uppercase tracking-wider min-w-[60px]">
                         34
                       </th>
-                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[60px]">
+                      <th className="px-6 py-3 text-center text-xl font-bold text-gray-700 uppercase tracking-wider min-w-[60px]">
                         36
                       </th>
-                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[60px]">
+                      <th className="px-6 py-3 text-center text-xl font-bold text-gray-700 uppercase tracking-wider min-w-[60px]">
                         38
                       </th>
-                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[60px]">
+                      <th className="px-6 py-3 text-center text-xl font-bold text-gray-700 uppercase tracking-wider min-w-[60px]">
                         40
                       </th>
-                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[60px]">
+                      <th className="px-6 py-3 text-center text-xl font-bold text-gray-700 uppercase tracking-wider min-w-[60px]">
                         42
                       </th>
-                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[60px]">
+                      <th className="px-6 py-3 text-center text-xl font-bold text-gray-700 uppercase tracking-wider min-w-[60px]">
                         44
                       </th>
                       <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[80px]">
@@ -339,7 +339,7 @@ const Inventory = () => {
                                   </div>
                                 </div>
                                 <div className="ml-3">
-                                  <div className="text-sm font-medium text-gray-900">
+                                  <div className="text-base font-semibold text-gray-900 uppercase">
                                     {entry.product?.name || "Unknown Product"}
                                   </div>
                                 </div>
@@ -351,7 +351,7 @@ const Inventory = () => {
                               
                               return (
                                 <td key={size} className="px-6 py-4 text-center">
-                                  <div className={`inline-flex items-center justify-center px-2 py-1 rounded-md text-xs font-medium ${
+                                  <div className={`inline-flex items-center justify-center px-3 py-2 rounded-md text-sm font-semibold ${
                                     isAvailable && quantity > 0
                                       ? quantity <= 5
                                         ? 'bg-yellow-100 text-yellow-800'
@@ -388,25 +388,25 @@ const Inventory = () => {
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[200px]">
                         Product Name
                       </th>
-                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[60px]">
+                      <th className="px-6 py-3 text-center text-sm font-bold text-gray-700 uppercase tracking-wider min-w-[60px]">
                         S
                       </th>
-                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[60px]">
+                      <th className="px-6 py-3 text-center text-sm font-bold text-gray-700 uppercase tracking-wider min-w-[60px]">
                         M
                       </th>
-                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[60px]">
+                      <th className="px-6 py-3 text-center text-sm font-bold text-gray-700 uppercase tracking-wider min-w-[60px]">
                         L
                       </th>
-                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[60px]">
+                      <th className="px-6 py-3 text-center text-sm font-bold text-gray-700 uppercase tracking-wider min-w-[60px]">
                         XL
                       </th>
-                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[60px]">
+                      <th className="px-6 py-3 text-center text-sm font-bold text-gray-700 uppercase tracking-wider min-w-[60px]">
                         XXL
                       </th>
-                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[60px]">
+                      <th className="px-6 py-3 text-center text-sm font-bold text-gray-700 uppercase tracking-wider min-w-[60px]">
                         3XL
                       </th>
-                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[60px]">
+                      <th className="px-6 py-3 text-center text-sm font-bold text-gray-700 uppercase tracking-wider min-w-[60px]">
                         4XL
                       </th>
                       <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[80px]">
@@ -430,7 +430,7 @@ const Inventory = () => {
                                   </div>
                                 </div>
                                 <div className="ml-3">
-                                  <div className="text-sm font-medium text-gray-900">
+                                  <div className="text-base font-semibold text-gray-900 uppercase">
                                     {entry.product?.name || "Unknown Product"}
                                   </div>
                                 </div>
@@ -442,7 +442,7 @@ const Inventory = () => {
                               
                               return (
                                 <td key={size} className="px-6 py-4 text-center">
-                                  <div className={`inline-flex items-center justify-center px-2 py-1 rounded-md text-xs font-medium ${
+                                  <div className={`inline-flex items-center justify-center px-3 py-2 rounded-md text-sm font-semibold ${
                                     isAvailable && quantity > 0
                                       ? quantity <= 5
                                         ? 'bg-yellow-100 text-yellow-800'

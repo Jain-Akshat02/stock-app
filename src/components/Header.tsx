@@ -11,15 +11,7 @@ const Header = () => {
         {/* You can add a search bar or logo here if needed */}
       </div>
       <div className="flex items-center space-x-4">
-        <button onClick={() => router.push('/add-stock')}  className="flex items-center bg-pink-500 text-white px-4 py-2 cursor-pointer rounded-lg hover:bg-pink-600 transition-colors">
-          <Plus size={20} className="mr-2" />
-          Add Stock
-        </button>
-        <button className="flex items-center bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors cursor-pointer" onClick={() => router.push('/record-sale')}
-        >
-          <Minus size={20} className="mr-2 " />
-          Record Sale
-        </button>
+        
         <button className="p-2 rounded-full hover:bg-gray-100">
           <Bell size={20} className="text-gray-600" />
         </button>
