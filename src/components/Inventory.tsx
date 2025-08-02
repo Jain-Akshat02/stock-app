@@ -5,8 +5,6 @@ import { useRouter } from "next/navigation";
 import { 
   Plus, 
   Search, 
-  Edit, 
-  Trash2, 
   X, 
   Minus, 
   Package, 
@@ -14,9 +12,6 @@ import {
   AlertTriangle, 
   CheckCircle, 
   Filter,
-  BarChart3,
-  Calendar,
-  Printer,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import axios from "axios";
@@ -212,30 +207,6 @@ const Inventory = () => {
               </div>
               <div className="p-3 bg-green-100 rounded-xl">
                 <TrendingUp size={24} className="text-green-600" />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Low Stock</p>
-                <p className="text-3xl font-bold text-yellow-600">{lowStockItems}</p>
-              </div>
-              <div className="p-3 bg-yellow-100 rounded-xl">
-                <AlertTriangle size={24} className="text-yellow-600" />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Out of Stock</p>
-                <p className="text-3xl font-bold text-red-600">{outOfStockItems}</p>
-              </div>
-              <div className="p-3 bg-red-100 rounded-xl">
-                <X size={24} className="text-red-600" />
               </div>
             </div>
           </div>
