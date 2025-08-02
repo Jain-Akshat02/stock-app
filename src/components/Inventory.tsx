@@ -16,6 +16,7 @@ import {
   Filter,
   BarChart3,
   Calendar,
+  Printer,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import axios from "axios";
@@ -560,6 +561,50 @@ const Inventory = () => {
           </div>
         </div>
       )}
+      <style jsx>{`
+  @media print {
+    /* Hide elements you don't want printed */
+    button, 
+    .bg-gradient-to-br,
+    .shadow-sm,
+    .shadow-lg,
+    .border,
+    .rounded-2xl,
+    .rounded-xl,
+    .hover\\:bg-gray-50,
+    .transition-colors {
+      display: none !important;
+    }
+    
+    /* Ensure table is visible and properly formatted */
+    table {
+      width: 100% !important;
+      border-collapse: collapse !important;
+    }
+    
+    th, td {
+      border: 1px solid #ddd !important;
+      padding: 8px !important;
+      text-align: left !important;
+    }
+    
+    th {
+      background-color: #f9fafb !important;
+      font-weight: bold !important;
+    }
+    
+    /* Remove background colors and gradients */
+    .bg-pink-50, .bg-blue-50, .bg-gray-50 {
+      background-color: white !important;
+    }
+    
+    /* Ensure text is readable */
+    * {
+      color: black !important;
+      background-color: white !important;
+    }
+  }
+`}</style>
     </div>
   );
 };
