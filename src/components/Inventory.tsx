@@ -27,10 +27,12 @@ const getStockStatus = (stock: number) => {
     return { text: "Low Stock", color: "bg-yellow-100 text-yellow-800", icon: AlertTriangle };
   return { text: "In Stock", color: "bg-green-100 text-green-800", icon: CheckCircle };
 };
+
 const SIZE_SETS: Record<string, string[]> = {
     Bras: ["28", "30", "32", "34", "36", "38", "40", "42", "44"],
     Panties: ["S", "M", "L", "XL", "XXL", "3XL", "4XL"],
-  };
+};
+
 const Inventory = () => {
   const [products, setProducts] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -40,6 +42,7 @@ const Inventory = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedProductId, setSelectedProductId] = useState("All Products");
   const [totalProducts, setTotalProducts] = useState(0);
+  
   
   const [newProduct, setNewProduct] = useState({
     name: "",
@@ -71,11 +74,14 @@ const Inventory = () => {
       const key = `${entry.product?._id}`;
       if (!map.has(key)) {
         map.set(key, {
-          ...entry,
-          quantity: 0,
+          product: entry.product,
+          variants: [],
+          totalQuantity: 0,
         });
       }
-      map.get(key).quantity += entry.quantity;
+      const productData = map.get(key);
+      productData.variants.push(...entry.variants);
+      productData.totalQuantity += entry.quantity;
     }
     return Array.from(map.values());
   }
@@ -88,11 +94,11 @@ const Inventory = () => {
 
     const matchesSize =
       selectedSize === "All Sizes" ||
-      entry.variants?.[0]?.size === selectedSize;
+      entry.variants?.some((v: any) => v.size === selectedSize);
 
     const matchesStatus =
       stockStatus === "Current Status" ||
-      getStockStatus(entry.quantity).text === stockStatus;
+      getStockStatus(entry.totalQuantity).text === stockStatus;
 
     const matchSearch =
       searchQuery === "" ||
@@ -102,9 +108,10 @@ const Inventory = () => {
   });
 
   // Calculate summary statistics
-  const totalStock = filteredProducts.reduce((sum: number, entry: any) => sum + entry.quantity, 0);
-  const lowStockItems = filteredProducts.filter((entry: any) => entry.quantity < 5).length;
-  const outOfStockItems = filteredProducts.filter((entry: any) => entry.quantity === 0).length;
+  const totalStock = filteredProducts.reduce((sum: number, entry: any) => sum + entry.totalQuantity, 0);
+  const lowStockItems = filteredProducts.filter((entry: any) => entry.totalQuantity < 5).length;
+  const outOfStockItems = filteredProducts.filter((entry: any) => entry.totalQuantity === 0).length;
+  
   useEffect(() => {
     const totalProducts = async () => {
       try {
@@ -116,6 +123,7 @@ const Inventory = () => {
     }
     totalProducts();
   },[]);
+  
   useEffect(() => {
     const fetchStockData = async () => {
       try {
@@ -132,6 +140,17 @@ const Inventory = () => {
     };
     fetchStockData();
   }, []);
+
+  // Helper function to get quantity for a specific size
+  const getQuantityForSize = (variants: any[], size: string) => {
+    const variant = variants.find((v: any) => v.size === size);
+    return variant ? variant.quantity : 0;
+  };
+
+  // Helper function to get all available sizes for a product
+  const getAvailableSizes = (variants: any[]) => {
+    return variants.map((v: any) => v.size).sort();
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
@@ -288,104 +307,202 @@ const Inventory = () => {
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Product
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Category
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Size
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Stock Level
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {filteredProducts.map((entry: any, index: number) => {
-                  const status = getStockStatus(entry.quantity);
-                  const StatusIcon = status.icon;
-                  
-                  return (
-                    <tr key={index} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div className="flex-shrink-0 h-10 w-10">
-                            <div className="h-10 w-10 rounded-lg bg-gradient-to-r from-blue-400 to-purple-500 flex items-center justify-center">
-                              <Package size={20} className="text-white" />
-                            </div>
-                          </div>
-                          <div className="ml-4">
-                            <div className="text-sm font-medium text-gray-900">
-                              {entry.product?.name || "Unknown Product"}
-                            </div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                          {entry.product?.category || "Unknown"}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 max-w-xs overflow-hidden text-ellipsis">
-                        {entry.variants?.[0]?.size || "N/A"}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div className="text-sm font-medium text-gray-900">
-                            {entry.quantity || 0}
-                          </div>
-                          <div className="ml-2 w-16 bg-gray-200 rounded-full h-2">
-                            <div 
-                              className={`h-2 rounded-full ${
-                                entry.quantity === 0 ? 'bg-red-500' :
-                                entry.quantity < 5 ? 'bg-yellow-500' : 'bg-green-500'
-                              }`}
-                              style={{ width: `${Math.min((entry.quantity / 20) * 100, 100)}%` }}
-                            ></div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${status.color}`}>
-                          <StatusIcon size={12} className="mr-1" />
-                          {status.text}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <div className="flex items-center space-x-2">
-                          <button className="text-blue-600 hover:text-blue-900">
-                            <Edit size={16} />
-                          </button>
-                          <button className="text-red-600 hover:text-red-900">
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
-                      </td>
+            {/* Bras Section */}
+            {filteredProducts.filter((entry: any) => entry.product?.category === "Bras").length > 0 && (
+              <div className="mb-8">
+                <div className="px-6 py-3 bg-pink-50 border-b border-pink-200">
+                  <h3 className="text-lg font-semibold text-pink-800">Bras</h3>
+                </div>
+                <table className="w-full">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[200px]">
+                        Product Name
+                      </th>
+                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[60px]">
+                        28
+                      </th>
+                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[60px]">
+                        30
+                      </th>
+                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[60px]">
+                        32
+                      </th>
+                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[60px]">
+                        34
+                      </th>
+                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[60px]">
+                        36
+                      </th>
+                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[60px]">
+                        38
+                      </th>
+                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[60px]">
+                        40
+                      </th>
+                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[60px]">
+                        42
+                      </th>
+                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[60px]">
+                        44
+                      </th>
+                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[80px]">
+                        Total
+                      </th>
                     </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {filteredProducts
+                      .filter((entry: any) => entry.product?.category === "Bras")
+                      .map((entry: any, index: number) => {
+                        const availableSizes = getAvailableSizes(entry.variants);
+                        
+                        return (
+                          <tr key={`bras-${index}`} className="hover:bg-gray-50 transition-colors">
+                            <td className="px-6 py-4">
+                              <div className="flex items-center">
+                                <div className="flex-shrink-0 h-8 w-8">
+                                  <div className="h-8 w-8 rounded-lg bg-gradient-to-r from-pink-400 to-purple-500 flex items-center justify-center">
+                                    <Package size={16} className="text-white" />
+                                  </div>
+                                </div>
+                                <div className="ml-3">
+                                  <div className="text-sm font-medium text-gray-900">
+                                    {entry.product?.name || "Unknown Product"}
+                                  </div>
+                                </div>
+                              </div>
+                            </td>
+                            {SIZE_SETS.Bras.map((size) => {
+                              const quantity = getQuantityForSize(entry.variants, size);
+                              const isAvailable = availableSizes.includes(size);
+                              
+                              return (
+                                <td key={size} className="px-6 py-4 text-center">
+                                  <div className={`inline-flex items-center justify-center px-2 py-1 rounded-md text-xs font-medium ${
+                                    isAvailable && quantity > 0
+                                      ? quantity <= 5
+                                        ? 'bg-yellow-100 text-yellow-800'
+                                        : 'bg-green-100 text-green-800'
+                                      : 'bg-gray-100 text-gray-500'
+                                  }`}>
+                                    {isAvailable ? quantity : '-'}
+                                  </div>
+                                </td>
+                              );
+                            })}
+                            <td className="px-6 py-4 text-center">
+                              <div className="text-sm font-semibold text-gray-900">
+                                {entry.totalQuantity || 0}
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                  </tbody>
+                </table>
+              </div>
+            )}
 
-          {filteredProducts.length === 0 && (
-            <div className="text-center py-12">
-              <Package size={48} className="mx-auto text-gray-400 mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No products found</h3>
-              <p className="text-gray-500">Try adjusting your search or filters</p>
-            </div>
-          )}
+            {/* Panties Section */}
+            {filteredProducts.filter((entry: any) => entry.product?.category === "Panties").length > 0 && (
+              <div>
+                <div className="px-6 py-3 bg-blue-50 border-b border-blue-200">
+                  <h3 className="text-lg font-semibold text-blue-800">Panties</h3>
+                </div>
+                <table className="w-full">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[200px]">
+                        Product Name
+                      </th>
+                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[60px]">
+                        S
+                      </th>
+                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[60px]">
+                        M
+                      </th>
+                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[60px]">
+                        L
+                      </th>
+                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[60px]">
+                        XL
+                      </th>
+                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[60px]">
+                        XXL
+                      </th>
+                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[60px]">
+                        3XL
+                      </th>
+                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[60px]">
+                        4XL
+                      </th>
+                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[80px]">
+                        Total
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {filteredProducts
+                      .filter((entry: any) => entry.product?.category === "Panties")
+                      .map((entry: any, index: number) => {
+                        const availableSizes = getAvailableSizes(entry.variants);
+                        
+                        return (
+                          <tr key={`panties-${index}`} className="hover:bg-gray-50 transition-colors">
+                            <td className="px-6 py-4">
+                              <div className="flex items-center">
+                                <div className="flex-shrink-0 h-8 w-8">
+                                  <div className="h-8 w-8 rounded-lg bg-gradient-to-r from-blue-400 to-cyan-500 flex items-center justify-center">
+                                    <Package size={16} className="text-white" />
+                                  </div>
+                                </div>
+                                <div className="ml-3">
+                                  <div className="text-sm font-medium text-gray-900">
+                                    {entry.product?.name || "Unknown Product"}
+                                  </div>
+                                </div>
+                              </div>
+                            </td>
+                            {SIZE_SETS.Panties.map((size) => {
+                              const quantity = getQuantityForSize(entry.variants, size);
+                              const isAvailable = availableSizes.includes(size);
+                              
+                              return (
+                                <td key={size} className="px-6 py-4 text-center">
+                                  <div className={`inline-flex items-center justify-center px-2 py-1 rounded-md text-xs font-medium ${
+                                    isAvailable && quantity > 0
+                                      ? quantity <= 5
+                                        ? 'bg-yellow-100 text-yellow-800'
+                                        : 'bg-green-100 text-green-800'
+                                      : 'bg-gray-100 text-gray-500'
+                                  }`}>
+                                    {isAvailable ? quantity : '-'}
+                                  </div>
+                                </td>
+                              );
+                            })}
+                            <td className="px-6 py-4 text-center">
+                              <div className="text-sm font-semibold text-gray-900">
+                                {entry.totalQuantity || 0}
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {filteredProducts.length === 0 && (
+              <div className="text-center py-12">
+                <Package size={48} className="mx-auto text-gray-400 mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No products found</h3>
+                <p className="text-gray-500">Try adjusting your search or filters</p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
