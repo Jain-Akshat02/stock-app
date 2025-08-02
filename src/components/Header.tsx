@@ -6,7 +6,7 @@ import { Plus, Minus, Bell, ChevronDown,User } from 'lucide-react';
 const Header = () => {
   const router = useRouter();
   return (
-    <header className="bg-white shadow-sm p-4 flex justify-between items-center">
+    <header className="bg-white shadow-sm p-4 flex justify-between items-center w-full">
       <div className="relative w-64">
         {/* You can add a search bar or logo here if needed */}
       </div>

@@ -12,7 +12,7 @@ const Sidebar = ({ setActivePage, activePage }: SidebarProps) => {
   const router = useRouter();
 
   return (
-    <div className="bg-white text-gray-800 w-64 p-4 flex-shrink-0 shadow-lg hidden md:flex md:flex-col">
+    <div className="bg-white text-gray-800 w-48 p-4 flex-shrink-0 shadow-lg hidden md:flex md:flex-col">
       <div className="flex items-center mb-8">
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -59,15 +59,6 @@ const Sidebar = ({ setActivePage, activePage }: SidebarProps) => {
           </li>
         </ul>
       </nav>
-      <div className="p-4 bg-pink-50 rounded-lg text-center">
-        <h3 className="font-bold text-pink-800">Upgrade Plan</h3>
-        <p className="text-sm text-pink-700 mt-1">
-          Unlock advanced features and support.
-        </p>
-        <button className="bg-pink-500 text-white w-full py-2 mt-3 rounded-lg hover:bg-pink-600 transition-colors">
-          Upgrade
-        </button>
-      </div>
     </div>
   );
 };
