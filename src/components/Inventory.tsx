@@ -36,10 +36,8 @@ const Inventory = () => {
   const [selectedSize, setSelectedSize] = useState("All Sizes");
   const [stockStatus, setStockStatus] = useState("Current Status");
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedProductId, setSelectedProductId] = useState("All Products");
   const [totalProducts, setTotalProducts] = useState(0);
-  
-  
+   
   const [newProduct, setNewProduct] = useState({
     name: "",
     category: "Bras",
@@ -77,8 +75,11 @@ const Inventory = () => {
       }
       const productData = map.get(key);
       productData.variants.push(...entry.variants);
-      productData.totalQuantity += entry.quantity;
+      // Sum the quantities from variants
+      const variantQuantities = entry.variants.reduce((sum: number, variant: any) =>  sum + (variant.quantity || 0),0);
+      productData.totalQuantity += variantQuantities;
     }
+      
     return Array.from(map.values());
   }
   
@@ -104,10 +105,9 @@ const Inventory = () => {
   });
 
   // Calculate summary statistics
-  const totalStock = filteredProducts.reduce((sum: number, entry: any) => sum + entry.totalQuantity, 0);
-  const lowStockItems = filteredProducts.filter((entry: any) => entry.totalQuantity < 5).length;
-  const outOfStockItems = filteredProducts.filter((entry: any) => entry.totalQuantity === 0).length;
-  
+  const totalStock = filteredProducts.reduce((sum: number, entry: any) => {
+    return sum + (entry.totalQuantity || 0) },0
+  );
   useEffect(() => {
     const totalProducts = async () => {
       try {
@@ -127,7 +127,7 @@ const Inventory = () => {
         setProducts(response.data);
         console.log("Fetched stock data:", response.data);
       } catch (error: any) {
-        console.error("Error fetching stock data:", error.message);
+        console.log("Error fetching stock data:", error.message);
         toast.error(`Failed to fetch stock data: ${error.message}`, {
           position: "top-right",
         });
@@ -159,7 +159,7 @@ const Inventory = () => {
                 <Package size={24} className="text-blue-600" />
               </div>
               <div>
-                <h1 className="text-xl font-semibold text-gray-900">JORVIN BRA & PANTIES STOCK MANAGER</h1>
+                <h1 className="text-xl font-semibold text-gray-900">KORVIN BRA & PANTIES STOCK MANAGER</h1>
                 <p className="text-sm text-gray-500">Track and manage your stock levels</p>
               </div>
             </div>
@@ -339,7 +339,7 @@ const Inventory = () => {
                                   </div>
                                 </div>
                                 <div className="ml-3">
-                                  <div className="text-sm font-semibold text-gray-900 uppercase truncate">
+                                  <div className="text-md font-semibold text-gray-900 uppercase truncate">
                                     {entry.product?.name || "Unknown Product"}
                                   </div>
                                 </div>
@@ -364,7 +364,7 @@ const Inventory = () => {
                               );
                             })}
                             <td className="px-4 py-4 text-center">
-                              <div className="text-sm font-semibold text-gray-900">
+                              <div className="text-md font-semibold text-gray-900">
                                 {entry.totalQuantity || 0}
                               </div>
                             </td>
@@ -430,7 +430,7 @@ const Inventory = () => {
                                   </div>
                                 </div>
                                 <div className="ml-3">
-                                  <div className="text-sm font-semibold text-gray-900 uppercase truncate">
+                                  <div className="text-md font-semibold text-gray-900 uppercase truncate">
                                     {entry.product?.name || "Unknown Product"}
                                   </div>
                                 </div>
@@ -455,7 +455,7 @@ const Inventory = () => {
                               );
                             })}
                             <td className="px-4 py-4 text-center">
-                              <div className="text-sm font-semibold text-gray-900">
+                              <div className="text-md font-semibold text-gray-900">
                                 {entry.totalQuantity || 0}
                               </div>
                             </td>

@@ -10,7 +10,6 @@ connect();
 export async function GET() {
   try {
     console.log("Fetching total products count");
-    
     const totalProducts = await Product.countDocuments();
     return NextResponse.json({ totalProducts}, { status: 200});
   } catch (error: any) {
