@@ -125,8 +125,35 @@ export const DELETE = async (req: NextRequest) => {
 export const PUT = async (req: NextRequest) => {
   try {
     const reqBody = await req.json();
-    console.log("---PUT request body---", reqBody);
-    return NextResponse.json({message:"Reuest successful"}, {status: 200});
+    const { productId } = reqBody;
+    if(!productId){
+      return NextResponse.json({ message: "Product ID is required" }, { status: 400 });
+    }
+    const product = await Product.findBy(productId);
+    if(!product){
+      return NextResponse.json({ message:"Product not found" }, { status: 404 });
+    }
+   const updatedVariants =  product.variants.map((variant:any)=>({
+       ...variant.toObject(),
+      quantity: 0
+    }));
+    await Product.findByIdAndUpdate(
+      productId,
+      {
+        variants: updatedVariants,
+      },
+      { new: true }
+    )
+    await Stock.create({
+      product: productId,
+      variants: updatedVariants,
+      status: "stock cleared"
+    });
+    console.log("Stock cleared successfully for product:", product.name);
+    return NextResponse.json({ 
+      message: "All stock cleared successfully",
+      productId 
+    }, { status: 200 });
   } catch (error: any) {
     console.error("Error in PUT request:", error);
     return NextResponse.json(

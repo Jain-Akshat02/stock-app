@@ -72,7 +72,7 @@ const Inventory = () => {
 
   const handleClearStock = async () => {
     try {
-      const response = await axios.put(`/api/stock/entry/clear-stock`, {
+      const response = await axios.put(`/api/stock/entry`, {
         productId: selectedProductToDelete.product._id
       });
       toast.success("All stock cleared successfully!");
@@ -621,7 +621,7 @@ const Inventory = () => {
                   onClick={handleDeletePermanently}
                   className="w-full px-4 py-3 bg-red-500 text-white rounded-xl hover:bg-red-600 transition-colors font-medium"
                 >
-                  Delete Permanently
+                  Delete Permanently(maintainance)
                 </button>
               </div>
             </div>
