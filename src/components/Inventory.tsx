@@ -12,6 +12,7 @@ import {
   AlertTriangle, 
   CheckCircle, 
   Filter,
+  Trash2
 } from "lucide-react";
 import toast from "react-hot-toast";
 import axios from "axios";
@@ -37,6 +38,10 @@ const Inventory = () => {
   const [stockStatus, setStockStatus] = useState("Current Status");
   const [searchQuery, setSearchQuery] = useState("");
   const [totalProducts, setTotalProducts] = useState(0);
+  
+  // Delete modal states
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [selectedProductToDelete, setSelectedProductToDelete] = useState<any>(null);
    
   const [newProduct, setNewProduct] = useState({
     name: "",
@@ -58,6 +63,46 @@ const Inventory = () => {
     } catch (error) {
       toast.error("Failed to add product");
     }
+  };
+
+  const handleDeleteClick = (product: any) => {
+    setSelectedProductToDelete(product);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleClearStock = async () => {
+    try {
+      const response = await axios.put(`/api/stock/entry/clear-stock`, {
+        productId: selectedProductToDelete.product._id
+      });
+      toast.success("All stock cleared successfully!");
+      setIsDeleteModalOpen(false);
+      setSelectedProductToDelete(null);
+      // Refresh the data
+      const stockResponse = await axios.get("/api/stock/entry");
+      setProducts(stockResponse.data);
+    } catch (error: any) {
+      toast.error(`Failed to clear stock: ${error.response?.data?.message || error.message}`);
+    }
+  };
+
+  const handleDeletePermanently = async () => {
+    try {
+      const response = await axios.delete(`/api/stock/inventory/${selectedProductToDelete.product._id}`);
+      toast.success("Product deleted permanently!");
+      setIsDeleteModalOpen(false);
+      setSelectedProductToDelete(null);
+      // Refresh the data
+      const stockResponse = await axios.get("/api/stock/entry");
+      setProducts(stockResponse.data);
+    } catch (error: any) {
+      toast.error(`Failed to delete product: ${error.response?.data?.message || error.message}`);
+    }
+  };
+
+  const handleCloseDeleteModal = () => {
+    setIsDeleteModalOpen(false);
+    setSelectedProductToDelete(null);
   };
 
   const router = useRouter();
@@ -333,10 +378,16 @@ const Inventory = () => {
                           <tr key={`bras-${index}`} className="hover:bg-gray-50 transition-colors">
                             <td className="px-4 py-4">
                               <div className="flex items-center">
-                                <div className="flex-shrink-0 h-8 w-8">
+                                <div className="flex-shrink-0 h-8 w-8 relative group">
                                   <div className="h-8 w-8 rounded-lg bg-gradient-to-r from-pink-400 to-purple-500 flex items-center justify-center">
                                     <Package size={16} className="text-white" />
                                   </div>
+                                  <button
+                                    onClick={() => handleDeleteClick(entry)}
+                                    className="absolute inset-0 bg-red-500 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                                  >
+                                    <Trash2 size={14} className="text-white" />
+                                  </button>
                                 </div>
                                 <div className="ml-3">
                                   <div className="text-md font-semibold text-gray-900 uppercase truncate">
@@ -424,10 +475,16 @@ const Inventory = () => {
                           <tr key={`panties-${index}`} className="hover:bg-gray-50 transition-colors">
                             <td className="px-4 py-4">
                               <div className="flex items-center">
-                                <div className="flex-shrink-0 h-8 w-8">
+                                <div className="flex-shrink-0 h-8 w-8 relative group">
                                   <div className="h-8 w-8 rounded-lg bg-gradient-to-r from-blue-400 to-cyan-500 flex items-center justify-center">
                                     <Package size={16} className="text-white" />
                                   </div>
+                                  <button
+                                    onClick={() => handleDeleteClick(entry)}
+                                    className="absolute inset-0 bg-red-500 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                                  >
+                                    <Trash2 size={14} className="text-white" />
+                                  </button>
                                 </div>
                                 <div className="ml-3">
                                   <div className="text-md font-semibold text-gray-900 uppercase truncate">
@@ -528,6 +585,45 @@ const Inventory = () => {
               >
                 Save Product
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {isDeleteModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md">
+            <div className="flex justify-between items-center p-6 border-b border-gray-200">
+              <h2 className="text-xl font-bold text-gray-900">Delete Product</h2>
+              <button
+                onClick={handleCloseDeleteModal}
+                className="p-2 rounded-full hover:bg-gray-600 transition-colors text-gray-400"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <div className="p-6">
+              <p className="text-gray-700 mb-4">
+                Are you sure you want to delete{" "}
+                <span className="font-semibold text-gray-900">
+                  "{selectedProductToDelete?.product?.name}"?
+                </span>
+              </p>
+              <div className="space-y-3">
+                <button
+                  onClick={handleClearStock}
+                  className="w-full px-4 py-3 bg-yellow-500 text-white rounded-xl hover:bg-yellow-600 transition-colors font-medium"
+                >
+                  Clear All Stock
+                </button>
+                <button
+                  onClick={handleDeletePermanently}
+                  className="w-full px-4 py-3 bg-red-500 text-white rounded-xl hover:bg-red-600 transition-colors font-medium"
+                >
+                  Delete Permanently
+                </button>
+              </div>
             </div>
           </div>
         </div>

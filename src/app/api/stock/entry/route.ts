@@ -8,10 +8,8 @@ connect();
 export const POST = async (req: NextRequest) => {
   const reqBody = await req.json();
   const { productId, stockEntries,sale} = reqBody;
-  console.log("---reqBody---", reqBody);
   if (sale) {
     // Sale mode: expects productId, size, mrp, quantity, notes
-    console.log("---Sale mode---");
     
     for (const saleEntry of sale) {
       const { size, quantity } = saleEntry;
@@ -23,8 +21,7 @@ export const POST = async (req: NextRequest) => {
       const stockEntries = await Stock.find({
         product: productId,
       });
-      console.log("--helllo bhiya---");
-      console.log(productId, stockEntries);
+      // console.log(productId, stockEntries);
       const currentStock = stockEntries.reduce((sum: number, entry: any) => sum + entry.quantity, 0);
       if (currentStock < quantity) {
         return NextResponse.json({ message: "Not enough stock!" }, { status: 400 });
@@ -95,7 +92,7 @@ export const GET = async () => {
         ,
       })
       .sort({ date: -1 });
-    console.log("Fetched stocks:", stocks);
+    // console.log("Fetched stocks:", stocks);
     
     return NextResponse.json(stocks, { status: 200 });
   } catch (error: any) {
@@ -124,3 +121,18 @@ export const DELETE = async (req: NextRequest) => {
   }
 };
 //Stock validation failed: variants.0.size: Path `size` is required.
+
+export const PUT = async (req: NextRequest) => {
+  try {
+    const reqBody = await req.json();
+    console.log("---PUT request body---", reqBody);
+    return NextResponse.json({message:"Reuest successful"}, {status: 200});
+  } catch (error: any) {
+    console.error("Error in PUT request:", error);
+    return NextResponse.json(
+      { message: "Error updating stock", error: error.message },
+      { status: 500 }
+    );
+    
+  }
+}

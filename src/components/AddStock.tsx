@@ -184,7 +184,7 @@ const AddStock = () => {
         const response = await axios.get("/api/stock/inventory", { 
           params: { category: selectedCategory }
         });
-        console.log(response.data);
+        // console.log(response.data);
         setProducts(response.data.products);
       } catch (error: any) {
         console.error("Failed to fetch products:", error.message);

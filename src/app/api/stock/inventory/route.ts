@@ -35,7 +35,7 @@ export const POST = async (req: NextRequest) => {
   try {
     const body = await req.json();
     const { name, category } = body;
-    console.log(body);
+    // console.log(body);
     if (!name || !category) {
       return NextResponse.json(
         {
@@ -110,7 +110,7 @@ export const DELETE = async (req: Request) => {
   await connect();
   try {
     const data = await req.json();
-    console.log("Delete request data:", data);
+    // console.log("Delete request data:", data);
 
     const { _id, removeVariant } = data;
 

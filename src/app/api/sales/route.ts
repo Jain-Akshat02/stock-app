@@ -11,7 +11,6 @@ export const GET = async () => {
 
     const startDate = new Date(now.getFullYear(), now.getMonth(), 1);
     const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
-    console.log(`Calculating sales from ${startDate} to ${endDate}`);
 
     const salesEntries = await Stock.find({
       quantity: { $lt: 0 },
