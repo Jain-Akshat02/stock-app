@@ -155,6 +155,9 @@ const AddStock = () => {
   };
 
   const selectedProduct = products.find((p) => p._id === selectedProductId);
+  const sortedProducts = products.sort((a, b) => 
+  a.name.localeCompare(b.name)
+);
 
   // Create a ref callback for input elements
   const createInputRef = (size: string) => (el: HTMLInputElement | null) => {
@@ -342,7 +345,7 @@ const AddStock = () => {
                       <option value="" >
                         Select Quality
                       </option>
-                      {products.map((p) => (
+                      {sortedProducts.map((p) => (
                         <option key={p._id} value={p._id}>
                           {p.name}
                         </option>

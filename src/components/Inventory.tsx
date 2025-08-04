@@ -78,13 +78,13 @@ const Inventory = () => {
       // Sum the quantities from variants
       const variantQuantities = entry.variants.reduce((sum: number, variant: any) =>  sum + (variant.quantity || 0),0);
       productData.totalQuantity += variantQuantities;
-    }
-      
+    }    
     return Array.from(map.values());
   }
   
   const aggregatedProducts = aggregateStock(products);
-  const filteredProducts = aggregatedProducts.filter((entry: any) => {
+  const filteredAggregatedProducts = aggregatedProducts.sort((a, b) => a.product.name.localeCompare(b.product.name))
+  const filteredProducts = filteredAggregatedProducts.filter((entry: any) => {
     const matchesCategory =
       selectedCategory === "All Categories" ||
       entry.product?.category === selectedCategory;

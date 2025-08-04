@@ -28,6 +28,10 @@ const RecordSale = () => {
 
   const recordSaleBtnRef = useRef<HTMLButtonElement>(null);
 
+  const sortedProducts = products.sort((a, b) => 
+  a.name.localeCompare(b.name)
+);
+
   // Create a ref callback for input elements
   const createInputRef = (size: string) => (el: HTMLInputElement | null) => {
     if (el) {
@@ -204,7 +208,7 @@ const RecordSale = () => {
                   <option value="" >
                     Select Quality
                   </option>
-                  {products.map((p) => (
+                  {sortedProducts.map((p) => (
                     <option key={p._id} value={p._id}>
                       {p.name}
                     </option>
