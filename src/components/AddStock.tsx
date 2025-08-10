@@ -5,7 +5,6 @@ import {
   Plus,
   X,
   PackagePlus,
-  Trash2,
   ArrowLeft,
   Package,
   TrendingUp,

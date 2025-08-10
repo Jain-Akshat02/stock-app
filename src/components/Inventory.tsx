@@ -607,7 +607,7 @@ const Inventory = () => {
               <p className="text-gray-700 mb-4">
                 Are you sure you want to delete{" "}
                 <span className="font-semibold text-gray-900">
-                  "{selectedProductToDelete?.product?.name}"?
+                  &ldquo;{selectedProductToDelete?.product?.name}&rdquo;?
                 </span>
               </p>
               <div className="space-y-3">
