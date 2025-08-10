@@ -148,6 +148,7 @@ const AddStock = () => {
     [size: string]: string;
   }>({});
   const inputRefs = useRef<{ [size: string]: HTMLInputElement | null }>({});
+  const addStockBtnRef = useRef<HTMLButtonElement>(null);
 
   const SIZE_SETS: Record<string, string[]> = {
     Bras: ["28", "30", "32", "34", "36", "38", "40", "42", "44"],
@@ -210,6 +211,8 @@ const AddStock = () => {
 
       if (nextSize && inputRefs.current[nextSize]) {
         inputRefs.current[nextSize]?.focus();
+      } else if (addStockBtnRef.current) {
+        addStockBtnRef.current.focus();
       }
     }
   };
@@ -326,7 +329,9 @@ const AddStock = () => {
                     value={selectedCategory}
                     onChange={(e) => setSelectedCategory(e.target.value)}
                   >
-                    <option value="">Select Quality</option>
+                    <option value="" >
+                      Select Quality
+                    </option>
                     <option value="Bras">Bras</option>
                     <option value="Panties">Panties</option>
                   </select>
@@ -447,6 +452,7 @@ const AddStock = () => {
                 <button
                   onClick={handleSubmitStock}
                   disabled={isLoading || !selectedProduct}
+                  ref={addStockBtnRef}
                   className="flex items-center space-x-2 px-8 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl font-semibold hover:from-blue-600 hover:to-purple-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
                 >
                   {isLoading ? (
