@@ -3,7 +3,7 @@ import Stock from "@/models/stockModel";
 import Product from "@/models/productModel";
 import { NextRequest, NextResponse } from "next/server";
 
-connect();
+await connect();
 
 export const POST = async (req: NextRequest) => {
   const reqBody = await req.json();
@@ -104,20 +104,27 @@ export const GET = async () => {
 };
 
 export const DELETE = async (req: NextRequest) => {
-  await connect();
-  const { searchParams } = new URL(req.url);
-  const id = searchParams.get('id');
-  if (!id) {
-    return NextResponse.json({ message: 'Missing stock entry id' }, { status: 400 });
-  }
   try {
-    const deleted = await Stock.findByIdAndDelete(id);
-    if (!deleted) {
-      return NextResponse.json({ message: 'Stock entry not found' }, { status: 404 });
+    const reqBody = await req.json();
+    const { productId } = reqBody;
+    if(!productId){
+      return NextResponse.json({ message: "Product ID is required" }, { status: 400 });
     }
-    return NextResponse.json({ message: 'Stock entry deleted' }, { status: 200 });
+    const product = await Product.findById(productId);
+    if(!product){
+      return NextResponse.json({ message:"Product Not found"}, { status: 404 });
+    }
+    await Stock.deleteMany({ product: productId });
+    await Product.findByIdAndDelete(productId);
+
+    return NextResponse.json({ message:"Stock entry deleted successfully" }, { status: 200 });
   } catch (error: any) {
-    return NextResponse.json({ message: 'Error deleting stock entry', error: error.message }, { status: 500 });
+    console.error("Error in DELETE request:", error);
+    return NextResponse.json(
+      { message: "Error deleting stock entry", error: error.message },
+      { status: 500 }
+    );
+    
   }
 };
 //Stock validation failed: variants.0.size: Path `size` is required.
@@ -126,13 +133,15 @@ export const PUT = async (req: NextRequest) => {
   try {
     const reqBody = await req.json();
     const { productId } = reqBody;
+    console.log(productId);
     if(!productId){
       return NextResponse.json({ message: "Product ID is required" }, { status: 400 });
     }
-    const product = await Product.findBy(productId);
+    const product = await Product.findById(productId);
     if(!product){
       return NextResponse.json({ message:"Product not found" }, { status: 404 });
     }
+    await Stock.deleteMany({ product: productId });
    const updatedVariants =  product.variants.map((variant:any)=>({
        ...variant.toObject(),
       quantity: 0
@@ -144,11 +153,6 @@ export const PUT = async (req: NextRequest) => {
       },
       { new: true }
     )
-    await Stock.create({
-      product: productId,
-      variants: updatedVariants,
-      status: "stock cleared"
-    });
     console.log("Stock cleared successfully for product:", product.name);
     return NextResponse.json({ 
       message: "All stock cleared successfully",

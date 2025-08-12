@@ -75,6 +75,7 @@ const Inventory = () => {
       const response = await axios.put(`/api/stock/entry`, {
         productId: selectedProductToDelete.product._id
       });
+      window.location.reload();
       toast.success("All stock cleared successfully!");
       setIsDeleteModalOpen(false);
       setSelectedProductToDelete(null);
@@ -88,7 +89,9 @@ const Inventory = () => {
 
   const handleDeletePermanently = async () => {
     try {
-      const response = await axios.delete(`/api/stock/inventory/${selectedProductToDelete.product._id}`);
+      const response = await axios.delete(`/api/stock/entry`, {
+        data:{productId: selectedProductToDelete.product._id}
+      });
       toast.success("Product deleted permanently!");
       setIsDeleteModalOpen(false);
       setSelectedProductToDelete(null);
@@ -621,7 +624,7 @@ const Inventory = () => {
                   onClick={handleDeletePermanently}
                   className="w-full px-4 py-3 bg-red-500 text-white rounded-xl hover:bg-red-600 transition-colors font-medium"
                 >
-                  Delete Permanently(maintainance)
+                  Delete Permanently
                 </button>
               </div>
             </div>
