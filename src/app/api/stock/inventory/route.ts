@@ -2,10 +2,16 @@ import connect from "@/config/dbConfig";
 import Product from "@/models/productModel";
 import Stock from "@/models/stockModel";
 import { NextRequest, NextResponse } from "next/server";
+import { cors, handleCors } from "@/lib/cors";
+
 connect();
 
 
 export const GET = async (req: NextRequest) => {
+  // Handle CORS preflight
+  const corsResponse = handleCors(req);
+  if (corsResponse) return corsResponse;
+
   try {
     const {searchParams} = new URL(req.url);
     const selectedCategory = searchParams.get("category");
@@ -16,14 +22,28 @@ export const GET = async (req: NextRequest) => {
     }
 
     const products = await Product.find(query);
-    return NextResponse.json({ products }, { status: 200 });
+    const response = NextResponse.json({ products }, { status: 200 });
+    
+    // Add CORS headers
+    Object.entries(cors(req)).forEach(([key, value]) => {
+      response.headers.set(key, value);
+    });
+    
+    return response;
   } catch (error) {
-    return NextResponse.json(
+    const response = NextResponse.json(
       {
         message: "Error fetching products",
       },
       { status: 500 }
     );
+    
+    // Add CORS headers to error response too
+    Object.entries(cors(req)).forEach(([key, value]) => {
+      response.headers.set(key, value);
+    });
+    
+    return response;
   }
 };
 

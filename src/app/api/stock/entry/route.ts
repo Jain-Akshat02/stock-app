@@ -2,10 +2,15 @@ import connect from "@/config/dbConfig";
 import Stock from "@/models/stockModel";
 import Product from "@/models/productModel";
 import { NextRequest, NextResponse } from "next/server";
+import { cors, handleCors } from "@/lib/cors";
 
 await connect();
 
 export const POST = async (req: NextRequest) => {
+  // Handle CORS preflight
+  const corsResponse = handleCors(req);
+  if (corsResponse) return corsResponse;
+
   const reqBody = await req.json();
   const { productId, stockEntries,sale} = reqBody;
   if (sale) {
@@ -41,7 +46,14 @@ export const POST = async (req: NextRequest) => {
         { $inc: { "variants.$.quantity": -quantity } }
       );
     }
-    return NextResponse.json({ message: "Sale recorded successfully" }, { status: 201 });
+    const response = NextResponse.json({ message: "Sale recorded successfully" }, { status: 201 });
+    
+    // Add CORS headers
+    Object.entries(cors(req)).forEach(([key, value]) => {
+      response.headers.set(key, value);
+    });
+    
+    return response;
   }
 
   if (
@@ -49,10 +61,17 @@ export const POST = async (req: NextRequest) => {
     !stockEntries ||
     stockEntries.length === 0
   ) {
-    return NextResponse.json(
+    const response = NextResponse.json(
       { message: "Missing required fields" },
       { status: 400 }
     );
+    
+    // Add CORS headers
+    Object.entries(cors(req)).forEach(([key, value]) => {
+      response.headers.set(key, value);
+    });
+    
+    return response;
   }
   try {
     for (const entry of stockEntries) {
@@ -74,15 +93,33 @@ export const POST = async (req: NextRequest) => {
     }
   } catch (error: any) {
     console.log(error, error.message);
-    return NextResponse.json(
+    const response = NextResponse.json(
       { message: error.message, error: error },
       { status: 500 }
     );
+    
+    // Add CORS headers
+    Object.entries(cors(req)).forEach(([key, value]) => {
+      response.headers.set(key, value);
+    });
+    
+    return response;
   }
-  return NextResponse.json({ message: "Success" }, { status: 201 });
+  const response = NextResponse.json({ message: "Success" }, { status: 201 });
+  
+  // Add CORS headers
+  Object.entries(cors(req)).forEach(([key, value]) => {
+    response.headers.set(key, value);
+  });
+  
+  return response;
 };
 
-export const GET = async () => {
+export const GET = async (req: NextRequest) => {
+  // Handle CORS preflight
+  const corsResponse = handleCors(req);
+  if (corsResponse) return corsResponse;
+
   try {
     const stocks = await Stock.find()
       .populate({
@@ -94,16 +131,34 @@ export const GET = async () => {
       .sort({ date: -1 });
     // console.log("Fetched stocks:", stocks);
     
-    return NextResponse.json(stocks, { status: 200 });
+    const response = NextResponse.json(stocks, { status: 200 });
+    
+    // Add CORS headers
+    Object.entries(cors(req)).forEach(([key, value]) => {
+      response.headers.set(key, value);
+    });
+    
+    return response;
   } catch (error: any) {
-    return NextResponse.json(
+    const response = NextResponse.json(
       { message: "Error fetching stock", error: error.message },
       { status: 500 }
     );
+    
+    // Add CORS headers to error response too
+    Object.entries(cors(req)).forEach(([key, value]) => {
+      response.headers.set(key, value);
+    });
+    
+    return response;
   }
 };
 
 export const DELETE = async (req: NextRequest) => {
+  // Handle CORS preflight
+  const corsResponse = handleCors(req);
+  if (corsResponse) return corsResponse;
+
   try {
     const reqBody = await req.json();
     const { productId } = reqBody;
@@ -117,19 +172,36 @@ export const DELETE = async (req: NextRequest) => {
     await Stock.deleteMany({ product: productId });
     await Product.findByIdAndDelete(productId);
 
-    return NextResponse.json({ message:"Stock entry deleted successfully" }, { status: 200 });
+    const response = NextResponse.json({ message:"Stock entry deleted successfully" }, { status: 200 });
+    
+    // Add CORS headers
+    Object.entries(cors(req)).forEach(([key, value]) => {
+      response.headers.set(key, value);
+    });
+    
+    return response;
   } catch (error: any) {
     console.error("Error in DELETE request:", error);
-    return NextResponse.json(
+    const response = NextResponse.json(
       { message: "Error deleting stock entry", error: error.message },
       { status: 500 }
     );
     
+    // Add CORS headers
+    Object.entries(cors(req)).forEach(([key, value]) => {
+      response.headers.set(key, value);
+    });
+    
+    return response;
   }
 };
 //Stock validation failed: variants.0.size: Path `size` is required.
 
 export const PUT = async (req: NextRequest) => {
+  // Handle CORS preflight
+  const corsResponse = handleCors(req);
+  if (corsResponse) return corsResponse;
+
   try {
     const reqBody = await req.json();
     const { productId } = reqBody;
@@ -154,16 +226,29 @@ export const PUT = async (req: NextRequest) => {
       { new: true }
     )
     console.log("Stock cleared successfully for product:", product.name);
-    return NextResponse.json({ 
+    const response = NextResponse.json({ 
       message: "All stock cleared successfully",
       productId 
     }, { status: 200 });
+    
+    // Add CORS headers
+    Object.entries(cors(req)).forEach(([key, value]) => {
+      response.headers.set(key, value);
+    });
+    
+    return response;
   } catch (error: any) {
     console.error("Error in PUT request:", error);
-    return NextResponse.json(
+    const response = NextResponse.json(
       { message: "Error updating stock", error: error.message },
       { status: 500 }
     );
     
+    // Add CORS headers
+    Object.entries(cors(req)).forEach(([key, value]) => {
+      response.headers.set(key, value);
+    });
+    
+    return response;
   }
 }
