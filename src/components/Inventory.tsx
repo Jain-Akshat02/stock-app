@@ -328,7 +328,7 @@ const Inventory = () => {
 
           <div className="overflow-x-auto">
             {/* Bras Section */}
-            {filteredProducts.filter((entry: any) => entry.product?.category === "Bras").length > 0 && (
+            {filteredProducts.filter((entry: any) => entry.product?.category === "Bras").length >= 0 && (
               <div className="mb-8">
                 <div className="px-6 py-3 bg-pink-50 border-b border-pink-200">
                   <h3 className="text-lg font-semibold text-pink-800">Bras</h3>

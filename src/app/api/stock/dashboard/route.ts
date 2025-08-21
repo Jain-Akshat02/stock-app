@@ -2,16 +2,14 @@
 import { NextResponse } from 'next/server';
 import connect from '@/config/dbConfig';
 import Stock from '@/models/stockModel';
-import Product from '@/models/productModel'
+import Product from '@/models/productModel';
 
 
 connect();
 
 export async function GET() {
   try {
-    console.log("Fetching total products count");
-    const totalProducts = await Product.countDocuments();
-    return NextResponse.json({ totalProducts}, { status: 200});
+    
   } catch (error: any) {
     return NextResponse.json({ message: error.message, error }, { status: 500 });
     

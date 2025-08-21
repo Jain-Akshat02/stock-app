@@ -1,7 +1,6 @@
 // Product and Stock related types
 export interface Variant {
   size: string;
-  mrp: number;
   quantity?: number;
 }
 

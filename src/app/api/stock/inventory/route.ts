@@ -6,15 +6,11 @@ connect();
 
 
 export const GET = async (req: NextRequest) => {
-  await connect();
   try {
     const {searchParams} = new URL(req.url);
     const selectedCategory = searchParams.get("category");
 
-    const products = await Product.find({ category: selectedCategory });
-    for( const availaleStock of products){
-      availaleStock.variants
-    }
+    const products = await Product.find({ category: selectedCategory || 'Bras' });
     
     if (!products) {
       return NextResponse.json({ message: "Empty category" });
