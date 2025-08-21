@@ -10,11 +10,12 @@ export const GET = async (req: NextRequest) => {
     const {searchParams} = new URL(req.url);
     const selectedCategory = searchParams.get("category");
 
-    const products = await Product.find({ category: selectedCategory || 'Bras' });
-    
-    if (!products) {
-      return NextResponse.json({ message: "Empty category" });
+    let query: any = {};
+    if (selectedCategory && selectedCategory !== 'All' && selectedCategory !== 'All Categories') {
+      query = { category: selectedCategory };
     }
+
+    const products = await Product.find(query);
     return NextResponse.json({ products }, { status: 200 });
   } catch (error) {
     return NextResponse.json(

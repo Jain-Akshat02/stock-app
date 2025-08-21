@@ -80,8 +80,14 @@ const Inventory = () => {
       setIsDeleteModalOpen(false);
       setSelectedProductToDelete(null);
       // Refresh the data
-      const stockResponse = await axios.get("/api/stock/entry");
-      setProducts(stockResponse.data);
+      const stockResponse = await axios.get("/api/stock/inventory", {
+        params: { category: selectedCategory }
+      });
+      const mapped = (stockResponse.data.products || []).map((p: any) => ({
+        product: p,
+        variants: p.variants || [],
+      }));
+      setProducts(mapped);
     } catch (error: any) {
       toast.error(`Failed to clear stock: ${error.response?.data?.message || error.message}`);
     }
@@ -96,8 +102,14 @@ const Inventory = () => {
       setIsDeleteModalOpen(false);
       setSelectedProductToDelete(null);
       // Refresh the data
-      const stockResponse = await axios.get("/api/stock/entry");
-      setProducts(stockResponse.data);
+      const stockResponse = await axios.get("/api/stock/inventory", {
+        params: { category: selectedCategory }
+      });
+      const mapped = (stockResponse.data.products || []).map((p: any) => ({
+        product: p,
+        variants: p.variants || [],
+      }));
+      setProducts(mapped);
     } catch (error: any) {
       toast.error(`Failed to delete product: ${error.response?.data?.message || error.message}`);
     }
@@ -171,19 +183,25 @@ const Inventory = () => {
   useEffect(() => {
     const fetchStockData = async () => {
       try {
-        const response = await axios.get("/api/stock/entry");
-        setProducts(response.data);
-        console.log("Fetched stock data:", response.data);
+        const response = await axios.get("/api/stock/inventory", {
+          params: { category: selectedCategory }
+        });
+        const mapped = (response.data.products || []).map((p: any) => ({
+          product: p,
+          variants: p.variants || [],
+        }));
+        setProducts(mapped);
+        console.log("Fetched product data:", response.data);
       } catch (error: any) {
-        console.log("Error fetching stock data:", error.message);
-        toast.error(`Failed to fetch stock data: ${error.message}`, {
+        console.log("Error fetching product data:", error.message);
+        toast.error(`Failed to fetch product data: ${error.message}`, {
           position: "top-right",
         });
         return [];
       }
     };
     fetchStockData();
-  }, []);
+  }, [selectedCategory]);
 
   // Helper function to get quantity for a specific size
   const getQuantityForSize = (variants: any[], size: string) => {
@@ -406,7 +424,7 @@ const Inventory = () => {
                               return (
                                 <td key={size} className="px-2 py-4 text-center">
                                   <div className={`inline-flex items-center justify-center px-2 py-1 rounded-md text-base font-semibold ${
-                                    isAvailable && quantity > 0
+                                    isAvailable && quantity >= 0
                                       ? quantity <= 5
                                         ? 'bg-yellow-100 text-yellow-800'
                                         : 'bg-green-100 text-green-800'
