@@ -4,7 +4,7 @@ import Stock from "@/models/stockModel";
 import { NextRequest, NextResponse } from "next/server";
 import { cors, handleCors } from "@/lib/cors";
 
-connect();
+await connect();
 
 
 export const GET = async (req: NextRequest) => {

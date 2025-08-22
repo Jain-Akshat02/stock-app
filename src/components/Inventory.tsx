@@ -225,7 +225,7 @@ const Inventory = () => {
                 <Package size={24} className="text-blue-600" />
               </div>
               <div>
-                <h1 className="text-xl font-semibold text-gray-900">KORVIN BRA & PANTIES STOCK MANAGER</h1>
+                <h1 className="text-xl font-semibold text-gray-900">STOCK MANAGER</h1>
                 <p className="text-sm text-gray-500">Track and manage your stock levels</p>
               </div>
             </div>
