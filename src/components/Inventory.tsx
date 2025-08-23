@@ -521,7 +521,7 @@ const Inventory = () => {
                               return (
                                 <td key={size} className="px-2 py-4 text-center">
                                   <div className={`inline-flex items-center justify-center px-2 py-1 rounded-md text-base font-semibold ${
-                                    isAvailable && quantity > 0
+                                    isAvailable && quantity >= 0
                                       ? quantity <= 5
                                         ? 'bg-yellow-100 text-yellow-800'
                                         : 'bg-green-100 text-green-800'
