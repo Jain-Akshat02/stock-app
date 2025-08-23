@@ -258,6 +258,7 @@ const AddStock = () => {
       console.error(error.message);
       const message = error.response?.data?.message || "Failed to add stock.";
       toast.error(message);
+      toast.error("hello")
     } finally {
       setIsLoading(false);
     }
