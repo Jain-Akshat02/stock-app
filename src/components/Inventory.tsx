@@ -72,7 +72,7 @@ const Inventory = () => {
 
   const handleClearStock = async () => {
     try {
-      const response = await axios.put(`/api/stock/entry`, {
+      await axios.put(`/api/stock/entry`, {
         productId: selectedProductToDelete.product._id
       });
       window.location.reload();
@@ -95,7 +95,7 @@ const Inventory = () => {
 
   const handleDeletePermanently = async () => {
     try {
-      const response = await axios.delete(`/api/stock/entry`, {
+      await axios.delete(`/api/stock/entry`, {
         data:{productId: selectedProductToDelete.product._id}
       });
       toast.success("Product deleted permanently!");
@@ -225,7 +225,7 @@ const Inventory = () => {
                 <Package size={24} className="text-blue-600" />
               </div>
               <div>
-                <h1 className="text-xl font-semibold text-gray-900">KORVIN BRA & PANTIES STOCK MANAGER</h1>
+                <h1 className="text-xl font-semibold text-gray-900">Stock Manager App</h1>
                 <p className="text-sm text-gray-500">Track and manage your stock levels</p>
               </div>
             </div>
@@ -251,7 +251,6 @@ const Inventory = () => {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Statistics Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
             <div className="flex items-center justify-between">
@@ -349,7 +348,7 @@ const Inventory = () => {
             {filteredProducts.filter((entry: any) => entry.product?.category === "Bras").length >= 0 && (
               <div className="mb-8">
                 <div className="px-6 py-3 bg-pink-50 border-b border-pink-200">
-                  <h3 className="text-lg font-semibold text-pink-800">Bras</h3>
+                  <h3 className="text-lg font-semibold text-pink-800">Inventory 1</h3>
                 </div>
                 <table className="w-full min-w-full">
                   <thead className="bg-gray-50">
