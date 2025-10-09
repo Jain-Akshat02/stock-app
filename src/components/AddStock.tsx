@@ -25,7 +25,7 @@ const NewProductModal = ({
   onAddProduct: (newProduct: any) => void;
 }) => {
   const [newProductName, setNewProductName] = useState("");
-  const [newCategory, setNewCategory] = useState("Bras");
+  const [newCategory, setNewCategory] = useState("Inventory1");
   const [isSaving, setIsSaving] = useState(false);
 
   if (!isOpen) return null;
@@ -99,8 +99,8 @@ const NewProductModal = ({
                 value={newCategory}
                 onChange={(e) => setNewCategory(e.target.value)}
               >
-                <option value="Bras">Bras</option>
-                <option value="Panties">Panties</option>
+                <option value="Inventory1">Inventory1</option>
+                <option value="Inventory2">Inventory2</option>
               </select>
             </div>
           </div>
@@ -142,7 +142,7 @@ const AddStock = () => {
   const [selectedProductId, setSelectedProductId] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState("Bras");
+  const [selectedCategory, setSelectedCategory] = useState("Inventroy1");
   const [sizeQuantities, setSizeQuantities] = useState<{
     [size: string]: string;
   }>({});
@@ -150,8 +150,8 @@ const AddStock = () => {
   const addStockBtnRef = useRef<HTMLButtonElement>(null);
 
   const SIZE_SETS: Record<string, string[]> = {
-    Bras: ["28", "30", "32", "34", "36", "38", "40", "42", "44"],
-    Panties: ["S", "M", "L", "XL", "XXL", "3XL", "4XL"],
+    Inventory1: ["28", "30", "32", "34", "36", "38", "40", "42", "44"],
+    Inventory2: ["S", "M", "L", "XL", "XXL", "3XL", "4XL"],
   };
 
   const selectedProduct = products.find((p) => p._id === selectedProductId);
@@ -332,8 +332,8 @@ const AddStock = () => {
                     <option value="" >
                       Select Quality
                     </option>
-                    <option value="Bras">Bras</option>
-                    <option value="Panties">Panties</option>
+                    <option value="Inventory1">Inventory1</option>
+                    <option value="Inventory2">Inventory2</option>
                   </select>
                 </div>
                 
@@ -442,7 +442,7 @@ const AddStock = () => {
                 <button
                   className="px-6 py-3 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl font-semibold transition-all"
                   onClick={() => {
-                    setSelectedCategory("Bras");
+                    setSelectedCategory("Inventory1");
                     setSizeQuantities({});
                     setSelectedProductId("");
                   }}

@@ -26,8 +26,8 @@ const getStockStatus = (stock: number) => {
 };
 
 const SIZE_SETS: Record<string, string[]> = {
-    Bras: ["28", "30", "32", "34", "36", "38", "40", "42", "44"],
-    Panties: ["S", "M", "L", "XL", "XXL", "3XL", "4XL"],
+    Inventory1: ["28", "30", "32", "34", "36", "38", "40", "42", "44"],
+    Inventory2: ["S", "M", "L", "XL", "XXL", "3XL", "4XL"],
 };
 
 const Inventory = () => {
@@ -45,7 +45,7 @@ const Inventory = () => {
    
   const [newProduct, setNewProduct] = useState({
     name: "",
-    category: "Bras",
+    category: "Inventory1",
   });
 
   const handleSaveProduct = async () => {
@@ -305,8 +305,8 @@ const Inventory = () => {
                 onChange={(e) => setSelectedCategory(e.target.value)}
               >
                 <option value="All Categories">All Categories</option>
-                <option value="Bras">Bras</option>
-                <option value="Panties">Panties</option>
+                <option value="Inventory1">Inventory1</option>
+                <option value="Inventory2">Inventory2</option>
               </select>
 
               <select
@@ -344,8 +344,7 @@ const Inventory = () => {
           </div>
 
           <div className="overflow-x-auto">
-            {/* Bras Section */}
-            {filteredProducts.filter((entry: any) => entry.product?.category === "Bras").length >= 0 && (
+            {filteredProducts.filter((entry: any) => entry.product?.category === "inventory1").length >= 0 && (
               <div className="mb-8">
                 <div className="px-6 py-3 bg-pink-50 border-b border-pink-200">
                   <h3 className="text-lg font-semibold text-pink-800">Inventory 1</h3>
@@ -390,12 +389,12 @@ const Inventory = () => {
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {filteredProducts
-                      .filter((entry: any) => entry.product?.category === "Bras")
+                      .filter((entry: any) => entry.product?.category === "inventory1")
                       .map((entry: any, index: number) => {
                         const availableSizes = getAvailableSizes(entry.variants);
                         
                         return (
-                          <tr key={`bras-${index}`} className="hover:bg-gray-50 transition-colors">
+                          <tr key={`inventory1-${index}`} className="hover:bg-gray-50 transition-colors">
                             <td className="px-4 py-4">
                               <div className="flex items-center">
                                 <div className="flex-shrink-0 h-8 w-8 relative group">
@@ -416,7 +415,7 @@ const Inventory = () => {
                                 </div>
                               </div>
                             </td>
-                            {SIZE_SETS.Bras.map((size) => {
+                            {SIZE_SETS.inventory1.map((size) => {
                               const quantity = getQuantityForSize(entry.variants, size);
                               const isAvailable = availableSizes.includes(size);
                               
@@ -446,12 +445,10 @@ const Inventory = () => {
                 </table>
               </div>
             )}
-
-            {/* Panties Section */}
-            {filteredProducts.filter((entry: any) => entry.product?.category === "Panties").length > 0 && (
+            {filteredProducts.filter((entry: any) => entry.product?.category === "Inventory2").length > 0 && (
               <div>
                 <div className="px-6 py-3 bg-blue-50 border-b border-blue-200">
-                  <h3 className="text-lg font-semibold text-blue-800">Panties</h3>
+                  <h3 className="text-lg font-semibold text-blue-800">Inventory2</h3>
                 </div>
                 <table className="w-full min-w-full">
                   <thead className="bg-gray-50">
@@ -487,12 +484,12 @@ const Inventory = () => {
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {filteredProducts
-                      .filter((entry: any) => entry.product?.category === "Panties")
+                      .filter((entry: any) => entry.product?.category === "Inventory2")
                       .map((entry: any, index: number) => {
                         const availableSizes = getAvailableSizes(entry.variants);
                         
                         return (
-                          <tr key={`panties-${index}`} className="hover:bg-gray-50 transition-colors">
+                          <tr key={`Inventory2-${index}`} className="hover:bg-gray-50 transition-colors">
                             <td className="px-4 py-4">
                               <div className="flex items-center">
                                 <div className="flex-shrink-0 h-8 w-8 relative group">
@@ -513,7 +510,7 @@ const Inventory = () => {
                                 </div>
                               </div>
                             </td>
-                            {SIZE_SETS.Panties.map((size) => {
+                            {SIZE_SETS.Inventory2.map((size) => {
                               const quantity = getQuantityForSize(entry.variants, size);
                               const isAvailable = availableSizes.includes(size);
                               
@@ -587,8 +584,8 @@ const Inventory = () => {
                     setNewProduct((p) => ({ ...p, category: e.target.value }))
                   }
                 >
-                  <option value="Bras">Bras</option>
-                  <option value="Panties">Panties</option>
+                  <option value="inventory1">inventory1</option>
+                  <option value="Inventory2">Inventory2</option>
                 </select>
               </div>
             </div>

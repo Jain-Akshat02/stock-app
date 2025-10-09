@@ -9,12 +9,12 @@ import { useRouter } from "next/navigation";
 import { useCallback } from "react";
 
 const SIZE_SETS: Record<string, string[]> = {
-  Bras: ["28", "30", "32", "34", "36", "38", "40", "42", "44"],
-  Panties: ["S", "M", "L", "XL", "XXL", "3XL", "4XL"],
+  Inventory1: ["28", "30", "32", "34", "36", "38", "40", "42", "44"],
+  Inventory2: ["S", "M", "L", "XL", "XXL", "3XL", "4XL"],
 };
 
 const RecordSale = () => {
-  const [selectedCategory, setSelectedCategory] = useState("Bras");
+  const [selectedCategory, setSelectedCategory] = useState("inventory1");
   const [sizeQuantities, setSizeQuantities] = useState<{
     [size: string]: string;
   }>({});
@@ -123,7 +123,7 @@ const RecordSale = () => {
       await axios.post("/api/stock/entry", payload);
       toast.success("Sale recorded successfully!");
       router.refresh();
-      setSelectedCategory("Bras");
+      setSelectedCategory("inventory1");
     } catch (error: any) {
       console.error("Sale submission failed:", error);
       const message = error.response?.data?.message || "Failed to record sale.";
@@ -191,8 +191,8 @@ const RecordSale = () => {
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
                 >
-                  <option value="Bras">Bras</option>
-                  <option value="Panties">Panties</option>
+                  <option value="Inventory1">Inventory1</option>
+                  <option value="Inventory2">Inventory2</option>
                 </select>
               </div>
               
@@ -302,7 +302,7 @@ const RecordSale = () => {
               <button
                 className="px-6 py-3 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl font-semibold transition-all"
                 onClick={() => {
-                  setSelectedCategory("Bras");
+                  setSelectedCategory("inventory1");
                   setSizeQuantities({});
                   setSelectProductId("");
                 }}

@@ -64,8 +64,8 @@ export const POST = async (req: NextRequest) => {
     }
     const existingProd = await Product.findOne({ name: {$regex: new RegExp(`^${name}$`, "i")}})
     const sizeSets: Record<string, string[]> = {
-      Bras: ["28","30","32","34","36","38","40","42","44"],
-      Panties: ["S","M","L","XL","XXL","3XL","4XL"]
+      Inventory1: ["28","30","32","34","36","38","40","42","44"],
+      Inventory2: ["S","M","L","XL","XXL","3XL","4XL"]
     };
     const variants = (sizeSets[category] || []).map(size => ({size, quantity:0}))
 
