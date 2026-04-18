@@ -34,6 +34,7 @@ export const POST = async (req: NextRequest) => {
       // Record the sale as a negative stock entry
       await Stock.create({
         product: productId,
+        variants: [{ size: size, quantity: quantity }],
         quantity: -quantity,
         status: "stock out",
       });

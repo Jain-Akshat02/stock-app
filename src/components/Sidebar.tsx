@@ -57,6 +57,37 @@ const Sidebar = ({ setActivePage, activePage }: SidebarProps) => {
               <span className="ml-3">Inventory</span>
             </a>
           </li>
+          <li>
+            <a
+              href="#"
+              onClick={e => {
+                e.preventDefault();
+                setActivePage("history");
+                router.push("/history");
+              }}
+              className={`flex items-center py-3 px-4 my-1 rounded-lg transition-colors duration-200 ${
+                activePage === "history"
+                  ? "bg-pink-100 text-pink-600"
+                  : "hover:bg-gray-100"
+              }`}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              <span className="ml-3">History</span>
+            </a>
+          </li>
         </ul>
       </nav>
     </div>

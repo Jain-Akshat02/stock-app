@@ -83,7 +83,7 @@ const recentActivity: Activity[] = [
 ];
 
 const Dashboard = () => {
-  const [totalStock, setTotalStock] = useState(0);
+  const [totalItems, setTotalItems] = useState(0);
   const [totalSalesValue, setTotalSalesValue] = useState(0);
   const [lowStockCount, setLowStockCount] = useState(0);
   const [totalStockValue, setTotalStockValue] = useState(0);
@@ -93,11 +93,11 @@ const Dashboard = () => {
       try {
         const response = await axios.get("/api/stock/dashboard");
         if (response.status === 200) {
-          const { totalStock, lowStockCount, totalStockValue } = response.data;
-          console.log("Stock Data:", { totalStock, lowStockCount, totalStockValue });
-          setTotalStock(totalStock);
+          const { totalStock, lowStockCount, totalStockValue, totalSizeItems } = response.data;
+          console.log("Stock Data:", { totalStock, lowStockCount, totalStockValue, totalSizeItems });
           setLowStockCount(lowStockCount);
           setTotalStockValue(totalStockValue);
+          setTotalItems(totalSizeItems ?? 0);
         } else {
           console.error("Failed to fetch stock data:", response.statusText);
         }
@@ -130,8 +130,8 @@ const Dashboard = () => {
           changeType="increase"
         />
         <InfoCard
-          title="Total Products"
-          value={`${totalStock.toLocaleString()}`}
+          title="Total Items (Size-wise)"
+          value={`${totalItems.toLocaleString()}`}
           change="+15"
           changeType="increase"
         />

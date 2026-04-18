@@ -37,7 +37,7 @@ const Inventory = () => {
   const [selectedSize, setSelectedSize] = useState("All Sizes");
   const [stockStatus, setStockStatus] = useState("Current Status");
   const [searchQuery, setSearchQuery] = useState("");
-  const [totalProducts, setTotalProducts] = useState(0);
+  const [totalItems, setTotalItems] = useState(0);
   
   // Delete modal states
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -172,7 +172,7 @@ const Inventory = () => {
     const totalProducts = async () => {
       try {
         const response = await axios.get("/api/stock/dashboard");
-        setTotalProducts(response.data.totalProducts);
+        setTotalItems(response.data.totalSizeItems ?? 0);
       } catch (error) {
         return console.log("Error fetching total products:", error);
       }
@@ -255,8 +255,8 @@ const Inventory = () => {
           <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Total Products</p>
-                <p className="text-3xl font-bold text-gray-900">{totalProducts}</p>
+                <p className="text-sm font-medium text-gray-600">Total Items (Size-wise)</p>
+                <p className="text-3xl font-bold text-gray-900">{totalItems}</p>
               </div>
               <div className="p-3 bg-blue-100 rounded-xl">
                 <Package size={24} className="text-blue-600" />

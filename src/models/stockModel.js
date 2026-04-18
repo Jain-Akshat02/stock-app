@@ -15,7 +15,13 @@ const stockSchema = mongoose.Schema({
     status: {
         type: String,
         required: false
+    },
+    quantity: {
+        type: Number,
+        required: false
     }
+}, {
+    timestamps: true
 });
 
 const Stock = mongoose.models.Stock || mongoose.model('Stock', stockSchema);
